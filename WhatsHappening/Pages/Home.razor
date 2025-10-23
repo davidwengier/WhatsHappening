@@ -1,0 +1,60 @@
+﻿@page "/"
+
+<PageTitle>What's Happening</PageTitle>
+
+<h1>Todos (@_todoList.Count(todo => !todo.IsComplete))</h1>
+
+<FluentGrid Spacing="3">
+    <FluentGridItem xs="6">
+        <FluentTextField @bind-Value="_newTodoItem" Placeholder="Enter a Todo"></FluentTextField>
+    </FluentGridItem>
+    <FluentGridItem xs="6">
+    </FluentGridItem>
+</FluentGrid>
+<FluentButton @onclick="AddTodo">Add todo</FluentButton>
+
+@if (_todoList.Count > 0)
+{
+    <div>
+        <ul>
+            @foreach (TodoItem todo in _todoList)
+            {
+                <li>
+                    <FluentButton OnClick="@(() => RemoveTodo(todo))">
+                        <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size16.Delete())"
+                                    Color="Color.Error"
+                                    Slot="start" />
+                    </FluentButton>
+                    <FluentCheckbox type="checkbox" @bind-Value="todo.IsComplete" />
+                    <span style="@((todo.IsComplete) ? "text-decoration: line-through" : "")">@todo.Title</span>
+                </li>
+            }
+        </ul>
+    </div>
+}
+else
+{
+    <p>No todos yet.</p>
+}
+
+@code
+{
+    private string? _newTodoItem { get; set; }
+    private List<TodoItem> _todoList = [];
+
+    private void AddTodo()
+    {
+        if (!string.IsNullOrWhiteSpace(_newTodoItem))
+        {
+            _todoList.Add(new TodoItem(_newTodoItem));
+            _newTodoItem = string.Empty;
+        }
+    }
+
+    private void RemoveTodo(TodoItem todo)
+    {
+        _todoList.Remove(todo);
+        StateHasChanged();
+    }
+}
+`

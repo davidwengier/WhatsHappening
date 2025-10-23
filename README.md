@@ -2,6 +2,8 @@
 
 A supercharged, GitHub-aware productivity and task management app built with Blazor WebAssembly and backed by Firebase.
 
+Initial project template from https://github.com/Netonia/FluentBlazor
+
 ## Mission
 Replace ad-hoc OneNote / plain lists with a focused, fast, and insightful task workspace that keeps personal tasks and linked GitHub issues in one coherent flow.
 
@@ -59,31 +61,3 @@ Firebase web API keys are intentionally public identifiers, not secrets. Real pr
 - Read/write restricted to authenticated user on their own task documents
 - Validation of allowed fields & size limits to mitigate abuse
 Do NOT commit service account keys or admin credentials.
-
-## Development Roadmap (High Level)
-1. Project scaffold & GitHub Pages deployment
-2. Firebase integration (Auth + Firestore) & secure rules baseline
-3. Core task CRUD + ordering + local UI state management
-4. Completion & archiving flows + history logging
-5. GitHub issue linking (manual URL input first, then search enhancement)
-6. Filtering / tag management UX
-7. Reminders & stale task prompts
-8. Board view & extended visualizations
-9. Metrics / charts & polish
-10. Documentation refinement & onboarding experience
-
-## Getting Started (to be expanded)
-1. Clone repo & open in IDE supporting .NET.
-2. Create Firebase project; enable GitHub provider; add Firestore.
-3. Insert Firebase config into appsettings or JS interop bootstrap.
-4. Run locally: `dotnet run` (details coming once scaffold exists).
-5. Deploy to GitHub Pages (workflow setup forthcoming).
-
-## Contributing / Direction
-Currently focused on personal use and learning. Issues / ideas welcome once initial scaffold lands.
-
-## License
-(TBD)
-
----
-"What's Happening?" – keeping tasks and code happenings aligned.
