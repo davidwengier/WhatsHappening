@@ -1,46 +1,65 @@
 ﻿@page "/"
+@using Microsoft.FluentUI.AspNetCore.Components.Icons.Regular
+@using Microsoft.AspNetCore.Components.Web
 
 <PageTitle>What's Happening</PageTitle>
 
+<style>
+    .square-button {
+        width: 30px !important;
+        height: 30px !important;
+    }
+
+    .borderless-textfield::part(control) {
+        background-color: var(--neutral-layer-1);
+        border: 0px;
+    }
+</style>
+
 <h1>Todos (@_todoList.Count(todo => !todo.IsComplete))</h1>
 
-<FluentGrid Spacing="3">
-    <FluentGridItem xs="6">
-        <FluentTextField @bind-Value="_newTodoItem" Placeholder="Enter a Todo"></FluentTextField>
+<FluentGrid Spacing="1">
+    <FluentGridItem xs="11">
+        <FluentTextField @bind-Value="_newTodoItem"
+                         Immediate="true"
+                         @onkeypress="HandleKeyPress"
+                         Placeholder="Enter a Todo"
+                         Style="width:100%;"
+                         Class="borderless-textfield"
+                         Appearance="FluentInputAppearance.Filled" />
     </FluentGridItem>
-    <FluentGridItem xs="6">
+    <FluentGridItem xs="1" Justify="JustifyContent.FlexEnd">
+        <FluentButton @onclick="AddTodo" Title="Add todo" AriaLabel="Add todo" Class="square-button" IconStart="new Size16.Add()">
+        </FluentButton>
     </FluentGridItem>
 </FluentGrid>
-<FluentButton @onclick="AddTodo">Add todo</FluentButton>
 
-@if (_todoList.Count > 0)
-{
-    <div>
-        <ul>
-            @foreach (TodoItem todo in _todoList)
-            {
-                <li>
-                    <FluentButton OnClick="@(() => RemoveTodo(todo))">
-                        <FluentIcon Value="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.Size16.Delete())"
-                                    Color="Color.Error"
-                                    Slot="start" />
-                    </FluentButton>
-                    <FluentCheckbox type="checkbox" @bind-Value="todo.IsComplete" />
-                    <span style="@((todo.IsComplete) ? "text-decoration: line-through" : "")">@todo.Title</span>
-                </li>
-            }
-        </ul>
-    </div>
-}
-else
-{
-    <p>No todos yet.</p>
-}
+<FluentGrid Spacing="1">
+    <FluentGridItem xs="12">
+        <FluentSortableList Items="_todoList" ListItemBackgroundColor="transparent">
+            <ItemTemplate>
+                <FluentGrid Spacing="0" Style="width:100%">
+                    <FluentGridItem xs="10">
+                        <div style="width:100%">
+                            @context.Title
+                        </div>
+                    </FluentGridItem>
+                    <FluentGridItem xs="2" Justify="JustifyContent.FlexEnd">
+                        <FluentButton Class="square-button" IconStart="new Size16.MoreHorizontal()">
+                        </FluentButton>
+                        <FluentButton OnClick="@(() => RemoveTodo(context))" Class="square-button" IconStart="new Size16.Delete()">
+                        </FluentButton>
+                    </FluentGridItem>
+                </FluentGrid>
+            </ItemTemplate>
+        </FluentSortableList>
+    </FluentGridItem>
+</FluentGrid>
 
 @code
 {
     private string? _newTodoItem { get; set; }
-    private List<TodoItem> _todoList = [];
+    private List<TodoItem> _todoList = [new("To do item 1"), new("To do item 2"), new("To do item 3"), new("To do item 4"), new("To do item 5"), new("To do item 6"), new("To do item 7")];
 
     private void AddTodo()
     {
@@ -56,5 +75,12 @@ else
         _todoList.Remove(todo);
         StateHasChanged();
     }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            AddTodo();
+        }
+    }
 }
-`
