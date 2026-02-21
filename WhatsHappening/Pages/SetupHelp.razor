@@ -1,0 +1,87 @@
+@page "/setup-help"
+
+<PageTitle>Setup Guide - What's Happening</PageTitle>
+
+<div style="display: flex; justify-content: center; padding: 2rem;">
+    <FluentCard Style="max-width: 700px; padding: 2rem;">
+        <h1>Setup Guide</h1>
+        <p>
+            What's Happening uses your own Firebase project for authentication and data storage.
+            Follow these steps to get everything configured.
+        </p>
+
+        <h2>Step 1: Create a Firebase Project</h2>
+        <ol>
+            <li>Go to the <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a></li>
+            <li>Click <strong>Add project</strong> (or select an existing one)</li>
+            <li>Follow the prompts to create your project (you can disable Google Analytics if you like)</li>
+        </ol>
+
+        <h2>Step 2: Add a Web App</h2>
+        <ol>
+            <li>In your Firebase project, go to <strong>Project Settings</strong> (gear icon in the top-left sidebar)</li>
+            <li>Scroll down to <strong>"Your apps"</strong></li>
+            <li>Click <strong>Add app</strong> and choose the <strong>Web</strong> icon (<code>&lt;/&gt;</code>)</li>
+            <li>Enter a nickname (e.g. "WhatsHappening") and click <strong>Register app</strong></li>
+            <li>
+                Firebase will display a config snippet containing your <strong>API Key</strong>,
+                <strong>Auth Domain</strong>, and <strong>Project ID</strong> &mdash; you'll need these for the setup page
+            </li>
+        </ol>
+
+        <h2>Step 3: Register a GitHub OAuth App</h2>
+        <ol>
+            <li>Go to <a href="https://github.com/settings/developers" target="_blank">GitHub Developer Settings</a></li>
+            <li>Click <strong>New OAuth App</strong></li>
+            <li>
+                Fill in the form:
+                <ul>
+                    <li><strong>Application name:</strong> anything you like (e.g. "WhatsHappening")</li>
+                    <li><strong>Homepage URL:</strong> your app's URL</li>
+                    <li>
+                        <strong>Authorization callback URL:</strong> copy this from Firebase
+                        (see Step 4 below &mdash; you may need to come back and fill this in)
+                    </li>
+                </ul>
+            </li>
+            <li>Click <strong>Register application</strong></li>
+            <li>Note the <strong>Client ID</strong>, then click <strong>Generate a new client secret</strong> and copy it</li>
+        </ol>
+
+        <h2>Step 4: Enable GitHub Sign-In in Firebase</h2>
+        <ol>
+            <li>In the Firebase Console, go to <strong>Authentication</strong> (left sidebar) &rarr; <strong>Sign-in method</strong></li>
+            <li>Click <strong>Add new provider</strong> &rarr; <strong>GitHub</strong></li>
+            <li>Toggle it to <strong>Enabled</strong></li>
+            <li>Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> from your GitHub OAuth App</li>
+            <li>
+                Copy the <strong>Authorization callback URL</strong> shown by Firebase
+                and paste it into your GitHub OAuth App's callback URL field (from Step 3)
+            </li>
+            <li>Click <strong>Save</strong></li>
+        </ol>
+
+        <h2>Step 5: Enter Your Config</h2>
+        <ol>
+            <li>Go to the <FluentAnchor Href="setup">Setup page</FluentAnchor></li>
+            <li>
+                Enter the three values from your Firebase web app config:
+                <ul>
+                    <li><strong>API Key</strong> &mdash; starts with <code>AIzaSy...</code></li>
+                    <li><strong>Auth Domain</strong> &mdash; looks like <code>your-project.firebaseapp.com</code></li>
+                    <li><strong>Project ID</strong> &mdash; your Firebase project ID</li>
+                </ul>
+            </li>
+            <li>Click <strong>Save &amp; Continue</strong>, then sign in with GitHub</li>
+        </ol>
+
+        <FluentMessageBar Title="Setting up another device?" Intent="MessageIntent.Info" Style="margin-top: 1.5rem;">
+            After saving your config, the setup page shows a shareable link you can
+            open on another browser or device to skip these steps.
+        </FluentMessageBar>
+
+        <div style="margin-top: 1.5rem;">
+            <FluentAnchor Href="setup" Appearance="Appearance.Accent">Back to Setup</FluentAnchor>
+        </div>
+    </FluentCard>
+</div>
