@@ -1,0 +1,10 @@
+﻿@code
+{
+    List<string> strings = [ "a", "bunch", "of", "strings" ];
+    HashSet<string> importantStrings = [];
+}
+<FindImportantStrings 
+    AllStrings="strings" 
+    @bind-ImportantStrings:get="(IEnumerable<string>)importantStrings"
+    @bind-ImportantStrings:set="s => importantStrings = [.. s]"
+    />

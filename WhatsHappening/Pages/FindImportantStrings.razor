@@ -1,0 +1,34 @@
+﻿@code
+{
+    private List<string> _importantStrings = [];
+
+    [Parameter]
+    public IEnumerable<string> AllStrings { get; set; }
+    [Parameter]
+    public IEnumerable<string> ImportantStrings { get; set; }
+    [Parameter]
+    public EventCallback<IEnumerable<string>> ImportantStringsChanged { get; set; }
+
+    public async Task AddImportantStringAsync(string value)
+    {
+        _importantStrings.Add(value);
+
+        await ImportantStringsChanged.InvokeAsync(_importantStrings); // the consumer might save these to a database or something, display them elsewhere on the page or do something else with them.
+    }
+    public async Task RemoveImportantStringAsync(string value)
+    {
+        _importantStrings.Remove(value);
+
+        await ImportantStringsChanged.InvokeAsync(_importantStrings); // the consumer might save these to a database or something, display them elsewhere on the page or do something else with them.
+    }
+}
+
+<div>
+    @foreach (string value in AllStrings)
+    {
+        <div>Is &qt;@(value)&qt; an important string?
+            <button @onclick="async () => await AddImportantStringAsync(value)">Yes</button>
+            <button @onclick="async () => await RemoveImportantStringAsync(value)">No</button>
+        </div>
+    }
+</div>
