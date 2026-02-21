@@ -55,6 +55,20 @@ window.firebaseInterop = {
         return sessionStorage.getItem("github_token");
     },
 
+    // Returns a promise that resolves once Firebase has loaded persisted auth state
+    waitForAuthState() {
+        return new Promise((resolve) => {
+            if (!auth) {
+                resolve(null);
+                return;
+            }
+            const unsubscribe = auth.onAuthStateChanged((user) => {
+                unsubscribe();
+                resolve(this._serializeUser(user));
+            });
+        });
+    },
+
     onAuthStateChanged(dotNetRef) {
         if (!auth) return;
         auth.onAuthStateChanged((user) => {
