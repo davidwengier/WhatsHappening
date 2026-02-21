@@ -3,35 +3,37 @@
 @inject NavigationManager Navigation
 
 <FluentLayout>
-    <FluentHeader Style="display:flex;align-items:center;justify-content:space-between;">
-        <a href="" style="color: inherit; text-decoration: none; font-weight: bold; white-space: nowrap;">What's Happening</a>
-        <AuthorizeView>
-            <Authorized>
-                <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="flex-shrink:0;">
-                    @if (context.User.FindFirst("picture")?.Value is string photoUrl)
-                    {
-                        <FluentPersona Name="@context.User.Identity?.Name"
-                                       ImageSize="24px"
-                                       Image="@photoUrl"
-                                       Style="color: var(--neutral-foreground-rest);" />
-                    }
-                    else
-                    {
-                        <span style="font-size: 0.85rem; white-space: nowrap;">@context.User.Identity?.Name</span>
-                    }
-                    <FluentButton Appearance="Appearance.Stealth"
-                                  OnClick="@(() => Navigation.NavigateTo("setup"))"
-                                  Title="Settings"
-                                  IconStart="@(new Icons.Regular.Size20.Settings())"
-                                  Style="color: var(--neutral-foreground-rest);" />
-                    <FluentButton Appearance="Appearance.Stealth"
-                                  OnClick="SignOut"
-                                  Title="Sign out"
-                                  IconStart="@(new Icons.Regular.Size20.SignOut())"
-                                  Style="color: var(--neutral-foreground-rest);" />
-                </FluentStack>
-            </Authorized>
-        </AuthorizeView>
+    <FluentHeader>
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+            <a href="" style="color: inherit; text-decoration: none; font-weight: bold; white-space: nowrap;">What's Happening</a>
+            <AuthorizeView>
+                <Authorized>
+                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="flex-shrink:0;">
+                        @if (context.User.FindFirst("picture")?.Value is string photoUrl)
+                        {
+                            <FluentPersona Name="@context.User.Identity?.Name"
+                                           ImageSize="24px"
+                                           Image="@photoUrl"
+                                           Style="color: var(--neutral-foreground-rest);" />
+                        }
+                        else
+                        {
+                            <span style="font-size: 0.85rem; white-space: nowrap;">@context.User.Identity?.Name</span>
+                        }
+                        <FluentButton Appearance="Appearance.Stealth"
+                                      OnClick="@(() => Navigation.NavigateTo("setup"))"
+                                      Title="Settings"
+                                      IconStart="@(new Icons.Regular.Size20.Settings())"
+                                      Style="color: var(--neutral-foreground-rest);" />
+                        <FluentButton Appearance="Appearance.Stealth"
+                                      OnClick="SignOut"
+                                      Title="Sign out"
+                                      IconStart="@(new Icons.Regular.Size20.SignOut())"
+                                      Style="color: var(--neutral-foreground-rest);" />
+                    </FluentStack>
+                </Authorized>
+            </AuthorizeView>
+        </div>
     </FluentHeader>
     <UpdateChecker />
     <FluentBodyContent Class="body-content">
