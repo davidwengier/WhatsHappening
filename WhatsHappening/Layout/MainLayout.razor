@@ -11,7 +11,7 @@
             </FluentStack>
             <AuthorizeView>
                 <Authorized>
-                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="flex-shrink:0;">
+                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="flex-shrink:0;margin-left:auto;">
                         @if (context.User.FindFirst("picture")?.Value is string photoUrl)
                         {
                             <FluentPersona Name="@context.User.Identity?.Name"
