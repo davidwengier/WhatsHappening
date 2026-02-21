@@ -19,7 +19,8 @@ public sealed class FirebaseAuthStateProvider : AuthenticationStateProvider, IDi
 
     public async Task InitializeAsync()
     {
-        var user = await _authService.GetCurrentUserAsync();
+        // Wait for Firebase to resolve persisted auth state before reporting
+        var user = await _authService.WaitForAuthStateAsync();
         UpdateUser(user);
         await _authService.ListenForAuthStateChangesAsync();
     }

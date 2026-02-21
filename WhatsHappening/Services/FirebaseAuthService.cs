@@ -36,6 +36,9 @@ public sealed class FirebaseAuthService : IAsyncDisposable
     public async Task<FirebaseUser?> GetCurrentUserAsync()
         => await _js.InvokeAsync<FirebaseUser?>("firebaseInterop.getCurrentUser");
 
+    public async Task<FirebaseUser?> WaitForAuthStateAsync()
+        => await _js.InvokeAsync<FirebaseUser?>("firebaseInterop.waitForAuthState");
+
     public async Task<string?> GetGitHubTokenAsync()
         => await _js.InvokeAsync<string?>("firebaseInterop.getGitHubToken");
 
