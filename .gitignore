@@ -416,3 +416,8 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+screenshot.js
+screenshot*.png
+package.json
+package-lock.json
