@@ -45,7 +45,9 @@
         }
         else
         {
-            Navigation.NavigateTo("setup");
+            // Don't redirect if already on setup (preserves query params from share links)
+            if (!Navigation.Uri.Contains("/setup", StringComparison.OrdinalIgnoreCase))
+                Navigation.NavigateTo("setup");
         }
 
         _initialized = true;

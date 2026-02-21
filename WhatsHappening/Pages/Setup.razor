@@ -1,4 +1,6 @@
 @page "/setup"
+@using System.Text
+@using System.Text.Json
 @inject FirebaseAuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
@@ -53,9 +55,10 @@
                 <h4>Setup on another device</h4>
                 <p style="font-size: 0.85rem; margin-bottom: 0.5rem;">
                     Copy this link to set up another browser or device with the same config.
+                    The link expires in 7 days.
                 </p>
                 <FluentMessageBar Title="Keep it private" Intent="MessageIntent.Warning" Style="margin-bottom: 0.75rem; font-size: 0.85rem;">
-                    This link contains your Firebase API key. Only send it to yourself &mdash; don't share it publicly.
+                    Only send this to yourself &mdash; don't share it publicly.
                 </FluentMessageBar>
                 <FluentTextField Value="@ShareLink" ReadOnly="true" Style="width: 100%; margin-bottom: 0.5rem;" />
                 <FluentButton Appearance="Appearance.Outline" OnClick="CopyLink" IconStart="@(new Icons.Regular.Size16.Copy())">
@@ -67,14 +70,8 @@
 </div>
 
 @code {
-    [SupplyParameterFromQuery(Name = "apiKey")]
-    public string? QsApiKey { get; set; }
-
-    [SupplyParameterFromQuery(Name = "authDomain")]
-    public string? QsAuthDomain { get; set; }
-
-    [SupplyParameterFromQuery(Name = "projectId")]
-    public string? QsProjectId { get; set; }
+    [SupplyParameterFromQuery(Name = "c")]
+    public string? QsConfig { get; set; }
 
     private string _apiKey = "";
     private string _authDomain = "";
@@ -94,10 +91,13 @@
         get
         {
             var baseUri = Navigation.BaseUri.TrimEnd('/');
-            var ak = Uri.EscapeDataString(_apiKey.Trim());
-            var ad = Uri.EscapeDataString(_authDomain.Trim());
-            var pid = Uri.EscapeDataString(_projectId.Trim());
-            return $"{baseUri}/setup?apiKey={ak}&authDomain={ad}&projectId={pid}";
+            var encoded = EncodeConfig(new FirebaseConfig
+            {
+                ApiKey = _apiKey.Trim(),
+                AuthDomain = _authDomain.Trim(),
+                ProjectId = _projectId.Trim(),
+            });
+            return $"{baseUri}/setup?c={Uri.EscapeDataString(encoded)}";
         }
     }
 
@@ -112,15 +112,21 @@
             _projectId = existing.ProjectId;
         }
 
-        // Override with query string values if present
-        if (!string.IsNullOrWhiteSpace(QsApiKey) &&
-            !string.IsNullOrWhiteSpace(QsAuthDomain) &&
-            !string.IsNullOrWhiteSpace(QsProjectId))
+        // Override with share link if present
+        if (!string.IsNullOrWhiteSpace(QsConfig))
         {
-            _apiKey = QsApiKey;
-            _authDomain = QsAuthDomain;
-            _projectId = QsProjectId;
-            _showAppliedMessage = true;
+            var decoded = DecodeConfig(QsConfig);
+            if (decoded is not null)
+            {
+                _apiKey = decoded.ApiKey;
+                _authDomain = decoded.AuthDomain;
+                _projectId = decoded.ProjectId;
+                _showAppliedMessage = true;
+            }
+            else
+            {
+                _error = "This setup link is invalid or has expired.";
+            }
         }
     }
 
@@ -169,5 +175,74 @@
         await Task.Delay(2000);
         _copied = false;
         StateHasChanged();
+    }
+
+    // XOR-based obfuscation keyed on the creation date (not truly secure, just opaque)
+    private static string EncodeConfig(FirebaseConfig config)
+    {
+        var created = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var expires = DateTime.UtcNow.AddDays(7).ToString("yyyy-MM-dd");
+        var payload = JsonSerializer.Serialize(new
+        {
+            a = config.ApiKey,
+            d = config.AuthDomain,
+            p = config.ProjectId,
+            e = expires,
+        });
+
+        var bytes = Encoding.UTF8.GetBytes(payload);
+        var key = Encoding.UTF8.GetBytes(created);
+        for (int i = 0; i < bytes.Length; i++)
+            bytes[i] ^= key[i % key.Length];
+
+        return Convert.ToBase64String(bytes)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+    }
+
+    private static FirebaseConfig? DecodeConfig(string encoded)
+    {
+        // Try each of the last 8 days as the XOR key (handles timezone edge cases)
+        for (int d = 0; d <= 7; d++)
+        {
+            try
+            {
+                var key = Encoding.UTF8.GetBytes(
+                    DateTime.UtcNow.AddDays(-d).ToString("yyyy-MM-dd"));
+
+                var padded = encoded.Replace('-', '+').Replace('_', '/');
+                switch (padded.Length % 4)
+                {
+                    case 2: padded += "=="; break;
+                    case 3: padded += "="; break;
+                }
+
+                var bytes = Convert.FromBase64String(padded);
+                for (int i = 0; i < bytes.Length; i++)
+                    bytes[i] ^= key[i % key.Length];
+
+                var json = Encoding.UTF8.GetString(bytes);
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                var expiry = DateTime.Parse(root.GetProperty("e").GetString()!);
+                if (expiry < DateTime.UtcNow.Date)
+                    return null;
+
+                return new FirebaseConfig
+                {
+                    ApiKey = root.GetProperty("a").GetString()!,
+                    AuthDomain = root.GetProperty("d").GetString()!,
+                    ProjectId = root.GetProperty("p").GetString()!,
+                };
+            }
+            catch
+            {
+                continue;
+            }
+        }
+
+        return null;
     }
 }
