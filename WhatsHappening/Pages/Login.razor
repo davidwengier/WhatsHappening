@@ -33,7 +33,7 @@
     {
         // If no Firebase config yet, redirect to setup
         if (!await AuthService.HasConfigAsync())
-            Navigation.NavigateTo("/setup");
+            Navigation.NavigateTo("setup");
     }
 
     private async Task SignInWithGitHub()
@@ -43,7 +43,7 @@
         try
         {
             await AuthService.SignInWithGitHubAsync();
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo("");
         }
         catch (Exception ex)
         {

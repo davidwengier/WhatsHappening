@@ -104,7 +104,7 @@
     {
         if (await AuthService.HasConfigAsync())
         {
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo("");
             return;
         }
 
@@ -141,7 +141,7 @@
             });
 
             // Force full reload so Firebase initializes with the new config
-            Navigation.NavigateTo("/", forceLoad: true);
+            Navigation.NavigateTo("", forceLoad: true);
         }
         catch (Exception ex)
         {
