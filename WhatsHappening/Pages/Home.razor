@@ -5,6 +5,34 @@
 <PageTitle>What's Happening</PageTitle>
 
 <style>
+    .floating-input {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 600px;
+        z-index: 1000;
+        background: var(--neutral-layer-1);
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .centered-list-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding-top: 120px;
+    }
+
+    .list-content {
+        width: 90%;
+        max-width: 600px;
+    }
+
     .square-button {
         width: 30px !important;
         height: 30px !important;
@@ -16,45 +44,50 @@
     }
 </style>
 
-<h1>Todos (@_todoList.Count(todo => !todo.IsComplete))</h1>
+<div class="floating-input">
+    <h1>Todos (@_todoList.Count(todo => !todo.IsComplete))</h1>
+    <FluentGrid Spacing="1">
+        <FluentGridItem xs="11">
+            <FluentTextField @bind-Value="_newTodoItem"
+                             Immediate="true"
+                             @onkeypress="HandleKeyPress"
+                             Placeholder="Enter a Todo"
+                             Style="width:100%;"
+                             Class="borderless-textfield"
+                             Appearance="FluentInputAppearance.Filled" />
+        </FluentGridItem>
+        <FluentGridItem xs="1" Justify="JustifyContent.FlexEnd">
+            <FluentButton @onclick="AddTodo" Title="Add todo" AriaLabel="Add todo" Class="square-button" IconStart="new Size16.Add()">
+            </FluentButton>
+        </FluentGridItem>
+    </FluentGrid>
+</div>
 
-<FluentGrid Spacing="1">
-    <FluentGridItem xs="11">
-        <FluentTextField @bind-Value="_newTodoItem"
-                         Immediate="true"
-                         @onkeypress="HandleKeyPress"
-                         Placeholder="Enter a Todo"
-                         Style="width:100%;"
-                         Class="borderless-textfield"
-                         Appearance="FluentInputAppearance.Filled" />
-    </FluentGridItem>
-    <FluentGridItem xs="1" Justify="JustifyContent.FlexEnd">
-        <FluentButton @onclick="AddTodo" Title="Add todo" AriaLabel="Add todo" Class="square-button" IconStart="new Size16.Add()">
-        </FluentButton>
-    </FluentGridItem>
-</FluentGrid>
-
-<FluentGrid Spacing="1">
-    <FluentGridItem xs="12">
-        <FluentSortableList Items="_todoList" ListItemBackgroundColor="transparent">
-            <ItemTemplate>
-                <FluentGrid Spacing="0" Style="width:100%">
-                    <FluentGridItem xs="10">
-                        <div style="width:100%">
-                            @context.Title
-                        </div>
-                    </FluentGridItem>
-                    <FluentGridItem xs="2" Justify="JustifyContent.FlexEnd">
-                        <FluentButton Class="square-button" IconStart="new Size16.MoreHorizontal()">
-                        </FluentButton>
-                        <FluentButton OnClick="@(() => RemoveTodo(context))" Class="square-button" IconStart="new Size16.Delete()">
-                        </FluentButton>
-                    </FluentGridItem>
-                </FluentGrid>
-            </ItemTemplate>
-        </FluentSortableList>
-    </FluentGridItem>
-</FluentGrid>
+<div class="centered-list-container">
+    <div class="list-content">
+        <FluentGrid Spacing="1">
+            <FluentGridItem xs="12">
+                <FluentSortableList Items="_todoList" ListItemBackgroundColor="transparent">
+                    <ItemTemplate>
+                        <FluentGrid Spacing="0" Style="width:100%">
+                            <FluentGridItem xs="10">
+                                <div style="width:100%">
+                                    @context.Title
+                                </div>
+                            </FluentGridItem>
+                            <FluentGridItem xs="2" Justify="JustifyContent.FlexEnd">
+                                <FluentButton Class="square-button" IconStart="new Size16.MoreHorizontal()">
+                                </FluentButton>
+                                <FluentButton OnClick="@(() => RemoveTodo(context))" Class="square-button" IconStart="new Size16.Delete()">
+                                </FluentButton>
+                            </FluentGridItem>
+                        </FluentGrid>
+                    </ItemTemplate>
+                </FluentSortableList>
+            </FluentGridItem>
+        </FluentGrid>
+    </div>
+</div>
 
 @code
 {
