@@ -23,6 +23,9 @@ jobs:
             - name: Copy index.html to 404.html
               run: cp release/wwwroot/index.html release/wwwroot/404.html
 
+            - name: Stamp version with git SHA
+              run: echo '{"version":"${{ github.sha }}"}' > release/wwwroot/version.json
+
             - name: Add .nojekyll file
               run: touch release/wwwroot/.nojekyll
 

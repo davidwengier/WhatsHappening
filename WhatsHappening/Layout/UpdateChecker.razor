@@ -1,0 +1,80 @@
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+@if (_updateAvailable)
+{
+    <div style="position:fixed;bottom:1rem;right:1rem;z-index:9999;max-width:350px;">
+        <FluentCard Style="padding:1rem;box-shadow:0 4px 12px rgba(0,0,0,0.25);">
+            <FluentStack Orientation="Orientation.Vertical">
+                <span>🆕 A new version is available.</span>
+                <FluentButton Appearance="Appearance.Accent" OnClick="Refresh">
+                    Refresh now
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </div>
+}
+
+@code {
+    private bool _updateAvailable;
+    private string? _loadedVersion;
+    private CancellationTokenSource _cts = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            _loadedVersion = await FetchVersionAsync();
+        }
+        catch
+        {
+            return; // version.json not available (local dev), skip checking
+        }
+
+        _ = PollForUpdatesAsync(_cts.Token);
+    }
+
+    private async Task PollForUpdatesAsync(CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            await Task.Delay(TimeSpan.FromMinutes(2), ct);
+            try
+            {
+                var current = await FetchVersionAsync();
+                if (current != _loadedVersion)
+                {
+                    _updateAvailable = true;
+                    await InvokeAsync(StateHasChanged);
+                    return;
+                }
+            }
+            catch
+            {
+                // Network error, try again next cycle
+            }
+        }
+    }
+
+    private async Task<string?> FetchVersionAsync()
+    {
+        // Bypass cache with a unique query string
+        var url = $"version.json?_={DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+        var doc = await Http.GetFromJsonAsync<VersionInfo>(url);
+        return doc?.Version;
+    }
+
+    private async Task Refresh()
+    {
+        await JS.InvokeVoidAsync("location.reload", true);
+    }
+
+    public void Dispose() => _cts.Cancel();
+
+    private sealed class VersionInfo
+    {
+        public string? Version { get; set; }
+    }
+}
