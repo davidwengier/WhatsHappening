@@ -1,0 +1,90 @@
+@page "/setup"
+@inject FirebaseAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Setup - What's Happening</PageTitle>
+
+<div style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
+    <FluentCard Style="max-width: 500px; padding: 2rem;">
+        <h2>Welcome to What's Happening</h2>
+        <p>
+            Enter your Firebase project configuration to get started.
+            Find these values in the
+            <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a>
+            under Project Settings.
+        </p>
+
+        <FluentTextField @bind-Value="_apiKey"
+                         Label="API Key"
+                         Style="width: 100%; margin-bottom: 1rem;" />
+
+        <FluentTextField @bind-Value="_authDomain"
+                         Label="Auth Domain"
+                         Placeholder="your-project.firebaseapp.com"
+                         Style="width: 100%; margin-bottom: 1rem;" />
+
+        <FluentTextField @bind-Value="_projectId"
+                         Label="Project ID"
+                         Style="width: 100%; margin-bottom: 1rem;" />
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <FluentMessageBar Title="Error" Intent="MessageIntent.Error" Style="margin-bottom: 1rem;">
+                @_error
+            </FluentMessageBar>
+        }
+
+        <FluentButton Appearance="Appearance.Accent" OnClick="SaveConfig" Disabled="_saving">
+            @(_saving ? "Saving..." : "Save & Continue")
+        </FluentButton>
+    </FluentCard>
+</div>
+
+@code {
+    private string _apiKey = "";
+    private string _authDomain = "";
+    private string _projectId = "";
+    private string? _error;
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (await AuthService.HasConfigAsync())
+            Navigation.NavigateTo("/");
+    }
+
+    private async Task SaveConfig()
+    {
+        _error = null;
+
+        if (string.IsNullOrWhiteSpace(_apiKey) ||
+            string.IsNullOrWhiteSpace(_authDomain) ||
+            string.IsNullOrWhiteSpace(_projectId))
+        {
+            _error = "All fields are required.";
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            await AuthService.SetConfigAsync(new FirebaseConfig
+            {
+                ApiKey = _apiKey.Trim(),
+                AuthDomain = _authDomain.Trim(),
+                ProjectId = _projectId.Trim(),
+            });
+
+            // Force full reload so Firebase initializes with the new config
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to save configuration: {ex.Message}";
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

@@ -1,0 +1,57 @@
+@page "/login"
+@inject FirebaseAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Sign In - What's Happening</PageTitle>
+
+<div style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
+    <FluentCard Style="max-width: 400px; padding: 2rem; text-align: center;">
+        <h2>Sign In</h2>
+        <p>Sign in with your GitHub account to access your tasks.</p>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <FluentMessageBar Title="Error" Intent="MessageIntent.Error" Style="margin-bottom: 1rem;">
+                @_error
+            </FluentMessageBar>
+        }
+
+        <FluentButton Appearance="Appearance.Accent"
+                      OnClick="SignInWithGitHub"
+                      Disabled="_signingIn"
+                      Style="width: 100%;">
+            @(_signingIn ? "Signing in..." : "Sign in with GitHub")
+        </FluentButton>
+    </FluentCard>
+</div>
+
+@code {
+    private string? _error;
+    private bool _signingIn;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // If no Firebase config yet, redirect to setup
+        if (!await AuthService.HasConfigAsync())
+            Navigation.NavigateTo("/setup");
+    }
+
+    private async Task SignInWithGitHub()
+    {
+        _error = null;
+        _signingIn = true;
+        try
+        {
+            await AuthService.SignInWithGitHubAsync();
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _error = $"Sign-in failed: {ex.Message}";
+        }
+        finally
+        {
+            _signingIn = false;
+        }
+    }
+}

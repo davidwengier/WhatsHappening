@@ -1,11 +1,54 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+@inject FirebaseAuthService AuthService
+@inject FirebaseAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<CascadingAuthenticationState>
+    @if (_initialized)
+    {
+        <Router AppAssembly="@typeof(App).Assembly">
+            <Found Context="routeData">
+                <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                    <NotAuthorized>
+                        <RedirectToLogin />
+                    </NotAuthorized>
+                </AuthorizeRouteView>
+            </Found>
+            <NotFound>
+                <PageTitle>Not found</PageTitle>
+                <LayoutView Layout="@typeof(MainLayout)">
+                    <p role="alert">Sorry, there's nothing at this address.</p>
+                </LayoutView>
+            </NotFound>
+        </Router>
+    }
+    else
+    {
+        <div style="display:flex;justify-content:center;align-items:center;height:100vh;">
+            <FluentProgressRing />
+        </div>
+    }
+</CascadingAuthenticationState>
+
+@code {
+    private bool _initialized;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var hasConfig = await AuthService.HasConfigAsync();
+        if (hasConfig)
+        {
+            var ok = await AuthService.InitializeAsync();
+            if (ok)
+                await AuthStateProvider.InitializeAsync();
+        }
+        else
+        {
+            Navigation.NavigateTo("/setup");
+        }
+
+        _initialized = true;
+        StateHasChanged();
+    }
+}

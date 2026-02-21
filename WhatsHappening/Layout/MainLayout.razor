@@ -1,8 +1,33 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@inject FirebaseAuthService AuthService
+@inject NavigationManager Navigation
 
 <FluentLayout>
     <FluentHeader>
         What's Happening
+        <FluentSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center">
+                    @if (context.User.FindFirst("picture")?.Value is string photoUrl)
+                    {
+                        <FluentPersona Name="@context.User.Identity?.Name"
+                                       ImageSize="24px"
+                                       Image="@photoUrl"
+                                       Style="color: var(--neutral-foreground-rest);" />
+                    }
+                    else
+                    {
+                        <span style="font-size: 0.85rem;">@context.User.Identity?.Name</span>
+                    }
+                    <FluentButton Appearance="Appearance.Stealth"
+                                  OnClick="SignOut"
+                                  Title="Sign out"
+                                  IconStart="@(new Icons.Regular.Size20.SignOut())"
+                                  Style="color: var(--neutral-foreground-rest);" />
+                </FluentStack>
+            </Authorized>
+        </AuthorizeView>
     </FluentHeader>
     <FluentStack Class="main" Orientation="Orientation.Horizontal" Width="100%">
         <NavMenu />
@@ -25,3 +50,11 @@
         <a href="https://learn.microsoft.com/en-us/aspnet/core/blazor" target="_blank">About Blazor</a>
     </FluentFooter>
 </FluentLayout>
+
+@code {
+    private async Task SignOut()
+    {
+        await AuthService.SignOutAsync();
+        Navigation.NavigateTo("/login");
+    }
+}
