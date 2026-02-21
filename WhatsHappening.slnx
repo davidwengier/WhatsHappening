@@ -1,3 +1,6 @@
 <Solution>
+  <Folder Name="/tools/">
+    <Project Path="tools/Screenshot/Screenshot.csproj" />
+  </Folder>
   <Project Path="whatshappening/WhatsHappening.csproj" />
 </Solution>
