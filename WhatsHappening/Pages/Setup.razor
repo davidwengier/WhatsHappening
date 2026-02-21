@@ -1,6 +1,7 @@
 @page "/setup"
 @inject FirebaseAuthService AuthService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Setup - What's Happening</PageTitle>
 
@@ -34,32 +35,96 @@
             </FluentMessageBar>
         }
 
+        @if (_showAppliedMessage)
+        {
+            <FluentMessageBar Title="Config applied" Intent="MessageIntent.Success" Style="margin-bottom: 1rem;">
+                Configuration loaded from link. Review the values above and click Save &amp; Continue.
+            </FluentMessageBar>
+        }
+
         <FluentButton Appearance="Appearance.Accent" OnClick="SaveConfig" Disabled="_saving">
             @(_saving ? "Saving..." : "Save & Continue")
         </FluentButton>
+
+        @if (HasAllFields)
+        {
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--neutral-stroke-rest);">
+                <h4>Setup on another device</h4>
+                <p style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                    Copy this link to set up another browser or device with the same config.
+                </p>
+                <FluentMessageBar Title="Keep it private" Intent="MessageIntent.Warning" Style="margin-bottom: 0.75rem; font-size: 0.85rem;">
+                    This link contains your Firebase API key. Only send it to yourself &mdash; don't share it publicly.
+                </FluentMessageBar>
+                <FluentTextField Value="@ShareLink" ReadOnly="true" Style="width: 100%; margin-bottom: 0.5rem;" />
+                <FluentButton Appearance="Appearance.Outline" OnClick="CopyLink" IconStart="@(new Icons.Regular.Size16.Copy())">
+                    @(_copied ? "Copied!" : "Copy link")
+                </FluentButton>
+            </div>
+        }
     </FluentCard>
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "apiKey")]
+    public string? QsApiKey { get; set; }
+
+    [SupplyParameterFromQuery(Name = "authDomain")]
+    public string? QsAuthDomain { get; set; }
+
+    [SupplyParameterFromQuery(Name = "projectId")]
+    public string? QsProjectId { get; set; }
+
     private string _apiKey = "";
     private string _authDomain = "";
     private string _projectId = "";
     private string? _error;
     private bool _saving;
+    private bool _copied;
+    private bool _showAppliedMessage;
+
+    private bool HasAllFields =>
+        !string.IsNullOrWhiteSpace(_apiKey) &&
+        !string.IsNullOrWhiteSpace(_authDomain) &&
+        !string.IsNullOrWhiteSpace(_projectId);
+
+    private string ShareLink
+    {
+        get
+        {
+            var baseUri = Navigation.BaseUri.TrimEnd('/');
+            var ak = Uri.EscapeDataString(_apiKey.Trim());
+            var ad = Uri.EscapeDataString(_authDomain.Trim());
+            var pid = Uri.EscapeDataString(_projectId.Trim());
+            return $"{baseUri}/setup?apiKey={ak}&authDomain={ad}&projectId={pid}";
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         if (await AuthService.HasConfigAsync())
+        {
             Navigation.NavigateTo("/");
+            return;
+        }
+
+        // Pre-fill from query string if present
+        if (!string.IsNullOrWhiteSpace(QsApiKey) &&
+            !string.IsNullOrWhiteSpace(QsAuthDomain) &&
+            !string.IsNullOrWhiteSpace(QsProjectId))
+        {
+            _apiKey = QsApiKey;
+            _authDomain = QsAuthDomain;
+            _projectId = QsProjectId;
+            _showAppliedMessage = true;
+        }
     }
 
     private async Task SaveConfig()
     {
         _error = null;
 
-        if (string.IsNullOrWhiteSpace(_apiKey) ||
-            string.IsNullOrWhiteSpace(_authDomain) ||
-            string.IsNullOrWhiteSpace(_projectId))
+        if (!HasAllFields)
         {
             _error = "All fields are required.";
             return;
@@ -86,5 +151,19 @@
         {
             _saving = false;
         }
+    }
+
+    private async Task CopyLink()
+    {
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", ShareLink);
+        _copied = true;
+        _ = ResetCopiedAsync();
+    }
+
+    private async Task ResetCopiedAsync()
+    {
+        await Task.Delay(2000);
+        _copied = false;
+        StateHasChanged();
     }
 }
