@@ -26,6 +26,12 @@ jobs:
             - name: Stamp version with git SHA
               run: echo '{"version":"${{ github.sha }}"}' > release/wwwroot/version.json
 
+            - name: Cache-bust local assets
+              run: |
+                SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
+                sed -i "s/\.css\"/\.css?v=${SHORT_SHA}\"/g" release/wwwroot/index.html
+                sed -i "s/\.js?v=[^\"]*\"/\.js?v=${SHORT_SHA}\"/g" release/wwwroot/index.html
+
             - name: Add .nojekyll file
               run: touch release/wwwroot/.nojekyll
 
