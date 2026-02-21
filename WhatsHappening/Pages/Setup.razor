@@ -103,13 +103,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (await AuthService.HasConfigAsync())
+        // Load existing config if revisiting setup
+        var existing = await AuthService.GetConfigAsync();
+        if (existing is not null)
         {
-            Navigation.NavigateTo("");
-            return;
+            _apiKey = existing.ApiKey;
+            _authDomain = existing.AuthDomain;
+            _projectId = existing.ProjectId;
         }
 
-        // Pre-fill from query string if present
+        // Override with query string values if present
         if (!string.IsNullOrWhiteSpace(QsApiKey) &&
             !string.IsNullOrWhiteSpace(QsAuthDomain) &&
             !string.IsNullOrWhiteSpace(QsProjectId))

@@ -24,6 +24,9 @@ public sealed class FirebaseAuthService : IAsyncDisposable
     public async Task ClearConfigAsync()
         => await _js.InvokeVoidAsync("firebaseInterop.clearConfig");
 
+    public async Task<FirebaseConfig?> GetConfigAsync()
+        => await _js.InvokeAsync<FirebaseConfig?>("firebaseInterop.getConfig");
+
     public async Task<bool> InitializeAsync()
         => await _js.InvokeAsync<bool>("firebaseInterop.initialize");
 
