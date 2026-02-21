@@ -8,7 +8,7 @@
 <style>
     .floating-input {
         position: fixed;
-        top: 20px;
+        top: 96px;
         left: 50%;
         transform: translateX(-50%);
         width: 90%;
@@ -26,7 +26,7 @@
         justify-content: center;
         align-items: center;
         min-height: 100vh;
-        padding-top: 120px;
+        padding-top: 80px;
     }
 
     .list-content {
@@ -46,7 +46,6 @@
 </style>
 
 <div class="floating-input">
-    <h1>Todos (@_todoList.Count(todo => !todo.IsComplete))</h1>
     <FluentGrid Spacing="1">
         <FluentGridItem xs="11">
             <FluentTextField @bind-Value="_newTodoItem"

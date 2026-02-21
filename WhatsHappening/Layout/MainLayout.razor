@@ -17,11 +17,11 @@
                             <FluentPersona Name="@context.User.Identity?.Name"
                                            ImageSize="24px"
                                            Image="@photoUrl"
-                                           Style="color: var(--neutral-foreground-rest);" />
+                                           Style="--neutral-foreground-rest: white; color: white;" />
                         }
                         else
                         {
-                            <span style="font-size: 0.85rem; white-space: nowrap;">@context.User.Identity?.Name</span>
+                            <span style="font-size: 0.85rem; white-space: nowrap; color: white;">@context.User.Identity?.Name</span>
                         }
                         <FluentButton Appearance="Appearance.Stealth"
                                       OnClick="@(() => Navigation.NavigateTo("setup"))"
