@@ -57,6 +57,7 @@ window.firebaseInterop = {
 
     // Returns a promise that resolves once Firebase has loaded persisted auth state
     waitForAuthState() {
+        const self = this;
         return new Promise((resolve) => {
             if (!auth) {
                 resolve(null);
@@ -64,7 +65,7 @@ window.firebaseInterop = {
             }
             const unsubscribe = auth.onAuthStateChanged((user) => {
                 unsubscribe();
-                resolve(this._serializeUser(user));
+                resolve(self._serializeUser(user));
             });
         });
     },
