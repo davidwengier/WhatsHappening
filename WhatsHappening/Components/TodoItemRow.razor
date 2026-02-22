@@ -1,7 +1,18 @@
 @using Microsoft.FluentUI.AspNetCore.Components.Icons.Regular
 
-<div>
+<div draggable="@(ShowDragHandle ? "true" : "false")"
+     @ondragstart="StartDrag"
+     @ondragover="@(() => { })" @ondragover:preventDefault="ShowDragHandle"
+     @ondrop="HandleDrop" @ondrop:preventDefault
+     @ondragenter="DragEnter" @ondragleave="DragLeave"
+     style="@DropIndicator">
     <div style="display:flex;align-items:center;width:100%;gap:8px;">
+        @if (ShowDragHandle)
+        {
+            <div style="cursor:grab;opacity:0.3;flex-shrink:0;line-height:0;padding:2px 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="3" cy="2.5" r="1.3"/><circle cx="7" cy="2.5" r="1.3"/><circle cx="3" cy="8" r="1.3"/><circle cx="7" cy="8" r="1.3"/><circle cx="3" cy="13.5" r="1.3"/><circle cx="7" cy="13.5" r="1.3"/></svg>
+            </div>
+        }
         <FluentCheckbox Value="@Item.IsComplete"
                         ValueChanged="@((bool _) => OnToggleComplete.InvokeAsync(Item))" />
         @if (Item.IsGitHubLinked)
@@ -68,9 +79,20 @@
     [Parameter] public EventCallback<TodoItem> OnToggleComplete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDelete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnRefresh { get; set; }
+    [Parameter] public bool ShowDragHandle { get; set; } = true;
+    [Parameter] public EventCallback<TodoItem> OnDragStart { get; set; }
+    [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }
 
     private bool _expanded;
     private bool _refreshing;
+    private int _dragCounter;
+
+    private string DropIndicator => _dragCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "";
+
+    private void StartDrag() => OnDragStart.InvokeAsync(Item);
+    private void DragEnter() => _dragCounter++;
+    private void DragLeave() => _dragCounter--;
+    private async Task HandleDrop() { _dragCounter = 0; await OnDropOnItem.InvokeAsync(Item); }
 
     private string TitleStyle
     {

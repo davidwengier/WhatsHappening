@@ -6,9 +6,20 @@
         @foreach (var todo in Items)
         {
             <TodoItemRow Item="@todo"
+                         ShowDragHandle="ShowDragHandles"
                          OnToggleComplete="OnToggleComplete"
                          OnDelete="OnDelete"
-                         OnRefresh="OnRefresh" />
+                         OnRefresh="OnRefresh"
+                         OnDragStart="OnDragStart"
+                         OnDropOnItem="OnDropOnItem" />
+        }
+        @if (ShowDragHandles)
+        {
+            <div @ondragover="@(() => { })" @ondragover:preventDefault
+                 @ondrop="HandleDropOnGroup" @ondrop:preventDefault
+                 @ondragenter="@(() => _dropZoneCounter++)" @ondragleave="@(() => _dropZoneCounter--)"
+                 style="min-height:12px;@(_dropZoneCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "")">
+            </div>
         }
     </FluentCard>
 }
@@ -19,7 +30,10 @@ else
             <ChildContent>
                 @if (Items.Count == 0)
                 {
-                    <div style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;">
+                    <div @ondragover="@(() => { })" @ondragover:preventDefault="ShowDragHandles"
+                         @ondrop="HandleDropOnGroup" @ondrop:preventDefault
+                         @ondragenter="@(() => _dropZoneCounter++)" @ondragleave="@(() => _dropZoneCounter--)"
+                         style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;min-height:24px;@(_dropZoneCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "")">
                         No items in this group
                         @if (OnDeleteGroup.HasDelegate)
                         {
@@ -32,9 +46,20 @@ else
                     @foreach (var todo in Items)
                     {
                         <TodoItemRow Item="@todo"
+                                     ShowDragHandle="ShowDragHandles"
                                      OnToggleComplete="OnToggleComplete"
                                      OnDelete="OnDelete"
-                                     OnRefresh="OnRefresh" />
+                                     OnRefresh="OnRefresh"
+                                     OnDragStart="OnDragStart"
+                                     OnDropOnItem="OnDropOnItem" />
+                    }
+                    @if (ShowDragHandles)
+                    {
+                        <div @ondragover="@(() => { })" @ondragover:preventDefault
+                             @ondrop="HandleDropOnGroup" @ondrop:preventDefault
+                             @ondragenter="@(() => _dropZoneCounter++)" @ondragleave="@(() => _dropZoneCounter--)"
+                             style="min-height:12px;@(_dropZoneCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "")">
+                        </div>
                     }
                 }
             </ChildContent>
@@ -44,19 +69,31 @@ else
 
 @code {
     [Parameter] public string? Heading { get; set; }
+    [Parameter] public string? GroupId { get; set; }
     [Parameter, EditorRequired] public List<TodoItem> Items { get; set; } = [];
     [Parameter] public bool StartExpanded { get; set; } = true;
+    [Parameter] public bool ShowDragHandles { get; set; } = true;
     [Parameter] public EventCallback<TodoItem> OnToggleComplete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDelete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnRefresh { get; set; }
     [Parameter] public EventCallback OnDeleteGroup { get; set; }
+    [Parameter] public EventCallback<TodoItem> OnDragStart { get; set; }
+    [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }
+    [Parameter] public EventCallback<string?> OnDropOnGroup { get; set; }
 
     private bool _expanded;
+    private int _dropZoneCounter;
 
     protected override void OnInitialized() => _expanded = StartExpanded;
 
     private async Task DeleteGroup()
     {
         await OnDeleteGroup.InvokeAsync();
+    }
+
+    private async Task HandleDropOnGroup()
+    {
+        _dropZoneCounter = 0;
+        await OnDropOnGroup.InvokeAsync(GroupId);
     }
 }

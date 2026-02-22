@@ -149,7 +149,10 @@
                     <TodoGroupSection Items="UngroupedActive"
                                       OnToggleComplete="ToggleComplete"
                                       OnDelete="RemoveTodo"
-                                      OnRefresh="RefreshGitHub" />
+                                      OnRefresh="RefreshGitHub"
+                                      OnDragStart="HandleDragStart"
+                                      OnDropOnItem="HandleDropOnItem"
+                                      OnDropOnGroup="HandleDropOnGroup" />
                 }
 
                 @* User-created groups *@
@@ -157,11 +160,15 @@
                 {
                     var items = ActiveItemsForGroup(group.Id!);
                     <TodoGroupSection Heading="@($"{group.Name} ({items.Count})")"
+                                      GroupId="@group.Id"
                                       Items="items"
                                       OnToggleComplete="ToggleComplete"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
-                                      OnDeleteGroup="@(() => DeleteGroup(group))" />
+                                      OnDeleteGroup="@(() => DeleteGroup(group))"
+                                      OnDragStart="HandleDragStart"
+                                      OnDropOnItem="HandleDropOnItem"
+                                      OnDropOnGroup="HandleDropOnGroup" />
                 }
             </div>
         }
@@ -204,6 +211,7 @@
                 <TodoGroupSection Heading="@($"Completed ({CompletedItems.Count})")"
                                   Items="CompletedItems"
                                   StartExpanded="false"
+                                  ShowDragHandles="false"
                                   OnToggleComplete="ToggleComplete"
                                   OnDelete="RemoveTodo"
                                   OnRefresh="RefreshGitHub" />
@@ -227,6 +235,8 @@
     private string InputPlaceholder => _selectedGroupId == "" ? "Enter a Todo" : $"Add to {_groups.FirstOrDefault(g => g.Id == _selectedGroupId)?.Name ?? "group"}";
 
     private bool _focusGroupInput;
+
+    private TodoItem? _draggedItem;
 
     private List<TodoItem> UngroupedActive => _todoList
         .Where(t => !t.IsComplete && string.IsNullOrEmpty(t.GroupId))
@@ -395,6 +405,54 @@
                     gitHubLabels = todo.GitHubLabels?.Select(l => new { name = l.Name, color = l.Color }).ToArray()
                 });
         }
+    }
+
+    private void HandleDragStart(TodoItem item) => _draggedItem = item;
+
+    private async Task HandleDropOnItem(TodoItem target)
+    {
+        if (_draggedItem is null || _draggedItem == target) { _draggedItem = null; return; }
+
+        var targetGroupId = target.GroupId ?? "";
+        _draggedItem.GroupId = string.IsNullOrEmpty(targetGroupId) ? null : target.GroupId;
+
+        var groupItems = _todoList
+            .Where(t => !t.IsComplete && (t.GroupId ?? "") == targetGroupId && t != _draggedItem)
+            .OrderBy(t => t.Order)
+            .ToList();
+
+        var targetIndex = groupItems.IndexOf(target);
+        groupItems.Insert(targetIndex, _draggedItem);
+
+        for (int i = 0; i < groupItems.Count; i++)
+        {
+            if (groupItems[i].Order != i || groupItems[i] == _draggedItem)
+            {
+                groupItems[i].Order = i;
+                if (groupItems[i].Id is not null)
+                    await Firestore.UpdateTodoAsync(groupItems[i].Id!, new { order = i, groupId = groupItems[i].GroupId });
+            }
+        }
+
+        _draggedItem = null;
+    }
+
+    private async Task HandleDropOnGroup(string? groupId)
+    {
+        if (_draggedItem is null) return;
+
+        _draggedItem.GroupId = string.IsNullOrEmpty(groupId) ? null : groupId;
+
+        var groupItems = _todoList
+            .Where(t => !t.IsComplete && (t.GroupId ?? "") == (groupId ?? "") && t != _draggedItem)
+            .ToList();
+
+        _draggedItem.Order = groupItems.Count > 0 ? groupItems.Max(t => t.Order) + 1 : 0;
+
+        if (_draggedItem.Id is not null)
+            await Firestore.UpdateTodoAsync(_draggedItem.Id, new { order = _draggedItem.Order, groupId = _draggedItem.GroupId });
+
+        _draggedItem = null;
     }
 
     private async Task ToggleComplete(TodoItem todo)
