@@ -23,6 +23,16 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
+    .input-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .input-row .borderless-textfield {
+        flex: 1;
+    }
+
     .centered-list-container {
         display: flex;
         flex-direction: column;
@@ -41,23 +51,19 @@
     }
 </style>
 
-
 <div class="floating-input">
-    <FluentGrid Spacing="1">
-        <FluentGridItem xs="11">
-            <FluentTextField @bind-Value="_newTodoItem"
-                             Immediate="true"
-                             @onkeypress="HandleKeyPress"
-                             Placeholder="Enter a Todo"
-                             Style="width:100%;"
-                             Class="borderless-textfield"
-                             Appearance="FluentInputAppearance.Filled" />
-        </FluentGridItem>
-        <FluentGridItem xs="1" Justify="JustifyContent.FlexEnd">
-            <FluentButton @onclick="AddTodo" Title="Add todo" AriaLabel="Add todo" Class="square-button" IconStart="new Size16.Add()">
-            </FluentButton>
-        </FluentGridItem>
-    </FluentGrid>
+    <div class="input-row">
+        <FluentTextField @bind-Value="_newTodoItem"
+                         Immediate="true"
+                         @onkeypress="HandleKeyPress"
+                         Placeholder="Enter a Todo"
+                         Class="borderless-textfield"
+                         Appearance="FluentInputAppearance.Filled" />
+        <FluentButton @onclick="AddTodo" Title="Add todo" AriaLabel="Add todo"
+                      Style="width:30px!important;height:30px!important;flex-shrink:0;"
+                      IconStart="new Size16.Add()">
+        </FluentButton>
+    </div>
 </div>
 
 <div class="centered-list-container">
@@ -94,19 +100,14 @@
                     <p>No todos yet. Type something above to get started!</p>
                 </div>
             }
-            else if (_activeTodos.Count > 0)
+            else
             {
-                <FluentGrid Spacing="1">
-                    <FluentGridItem xs="12">
-                        <FluentSortableList Items="_activeTodos" ListItemBackgroundColor="transparent">
-                            <ItemTemplate>
-                                <TodoItemRow Item="@context"
-                                             OnToggleComplete="ToggleComplete"
-                                             OnDelete="RemoveTodo" />
-                            </ItemTemplate>
-                        </FluentSortableList>
-                    </FluentGridItem>
-                </FluentGrid>
+                @foreach (var todo in _activeTodos)
+                {
+                    <TodoItemRow Item="@todo"
+                                 OnToggleComplete="ToggleComplete"
+                                 OnDelete="RemoveTodo" />
+                }
             }
 
             @if (_completedTodos.Count > 0)
