@@ -261,10 +261,8 @@
 
     private void TitleClick()
     {
-        if (!CanExpandOrEdit) return;
-
-        if (Item.IsExternalLinked || HasNotes)
-            _expanded = !_expanded;
+        if (CanExpandOrEdit)
+            ToggleExpand();
     }
 
     // Pick black or white text based on label background luminance
