@@ -1,11 +1,11 @@
 @using Microsoft.FluentUI.AspNetCore.Components.Icons.Regular
 
-<div draggable="@(ShowDragHandle && !_editing ? "true" : "false")"
+<div class="todo-item-row" draggable="@(ShowDragHandle && !_editing ? "true" : "false")"
      @ondragstart="StartDrag"
      @ondragover="@(() => { })" @ondragover:preventDefault="ShowDragHandle"
      @ondrop="HandleDrop" @ondrop:preventDefault
      @ondragenter="DragEnter" @ondragleave="DragLeave"
-     style="@DropIndicator">
+     style="min-height:44px;padding:2px 4px;border-radius:4px;@DropIndicator">
     <div style="display:flex;align-items:center;width:100%;gap:8px;">
         @if (ShowDragHandle)
         {
