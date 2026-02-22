@@ -39,6 +39,11 @@
         height: 30px !important;
     }
 
+    .completed-title {
+        text-decoration: line-through;
+        opacity: 0.5;
+    }
+
     .borderless-textfield::part(control) {
         background-color: var(--neutral-layer-1);
         border: 0px;
@@ -84,7 +89,7 @@
                 <p style="font-size: 0.85rem; opacity: 0.7;">@_firestoreError</p>
             </div>
         }
-        else if (_todoList.Count == 0)
+        else if (_activeTodos.Count == 0 && _completedTodos.Count == 0)
         {
             <div style="text-align: center; padding: 2rem; color: var(--neutral-foreground-hint);">
                 <p>No todos yet. Type something above to get started!</p>
@@ -92,27 +97,60 @@
         }
         else
         {
-            <FluentGrid Spacing="1">
-                <FluentGridItem xs="12">
-                    <FluentSortableList Items="_todoList" ListItemBackgroundColor="transparent">
-                        <ItemTemplate>
+            @if (_activeTodos.Count > 0)
+            {
+                <FluentGrid Spacing="1">
+                    <FluentGridItem xs="12">
+                        <FluentSortableList Items="_activeTodos" ListItemBackgroundColor="transparent">
+                            <ItemTemplate>
+                                <FluentGrid Spacing="0" Style="width:100%">
+                                    <FluentGridItem xs="1">
+                                        <FluentCheckbox Value="@context.IsComplete"
+                                                        ValueChanged="@((bool _) => ToggleComplete(context))" />
+                                    </FluentGridItem>
+                                    <FluentGridItem xs="9">
+                                        <div style="width:100%;padding-top:4px;">
+                                            @context.Title
+                                        </div>
+                                    </FluentGridItem>
+                                    <FluentGridItem xs="2" Justify="JustifyContent.FlexEnd">
+                                        <FluentButton Class="square-button" IconStart="new Size16.MoreHorizontal()">
+                                        </FluentButton>
+                                        <FluentButton OnClick="@(() => RemoveTodo(context))" Class="square-button" IconStart="new Size16.Delete()">
+                                        </FluentButton>
+                                    </FluentGridItem>
+                                </FluentGrid>
+                            </ItemTemplate>
+                        </FluentSortableList>
+                    </FluentGridItem>
+                </FluentGrid>
+            }
+
+            @if (_completedTodos.Count > 0)
+            {
+                <FluentAccordion Style="margin-top: 1rem;">
+                    <FluentAccordionItem Heading="@($"Completed ({_completedTodos.Count})")" Expanded="_completedExpanded">
+                        @foreach (var todo in _completedTodos)
+                        {
                             <FluentGrid Spacing="0" Style="width:100%">
-                                <FluentGridItem xs="10">
-                                    <div style="width:100%">
-                                        @context.Title
+                                <FluentGridItem xs="1">
+                                    <FluentCheckbox Value="@todo.IsComplete"
+                                                    ValueChanged="@((bool _) => ToggleComplete(todo))" />
+                                </FluentGridItem>
+                                <FluentGridItem xs="9">
+                                    <div class="completed-title" style="width:100%;padding-top:4px;">
+                                        @todo.Title
                                     </div>
                                 </FluentGridItem>
                                 <FluentGridItem xs="2" Justify="JustifyContent.FlexEnd">
-                                    <FluentButton Class="square-button" IconStart="new Size16.MoreHorizontal()">
-                                    </FluentButton>
-                                    <FluentButton OnClick="@(() => RemoveTodo(context))" Class="square-button" IconStart="new Size16.Delete()">
+                                    <FluentButton OnClick="@(() => RemoveTodo(todo))" Class="square-button" IconStart="new Size16.Delete()">
                                     </FluentButton>
                                 </FluentGridItem>
                             </FluentGrid>
-                        </ItemTemplate>
-                    </FluentSortableList>
-                </FluentGridItem>
-            </FluentGrid>
+                        }
+                    </FluentAccordionItem>
+                </FluentAccordion>
+            }
         }
     </div>
 </div>
@@ -121,7 +159,10 @@
 {
     private string? _newTodoItem { get; set; }
     private List<TodoItem> _todoList = [];
+    private List<TodoItem> _activeTodos => _todoList.Where(t => !t.IsComplete).OrderBy(t => t.Order).ToList();
+    private List<TodoItem> _completedTodos => _todoList.Where(t => t.IsComplete).OrderBy(t => t.Order).ToList();
     private bool _loading = true;
+    private bool _completedExpanded = false;
     private string? _firestoreError;
 
     protected override async Task OnInitializedAsync()
@@ -156,6 +197,22 @@
             {
                 _firestoreError = ex.Message;
             }
+        }
+    }
+
+    private async Task ToggleComplete(TodoItem todo)
+    {
+        if (todo.Id is null) return;
+        todo.IsComplete = !todo.IsComplete;
+        try
+        {
+            await Firestore.UpdateTodoAsync(todo.Id, new { isComplete = todo.IsComplete });
+            _firestoreError = null;
+        }
+        catch (Exception ex)
+        {
+            todo.IsComplete = !todo.IsComplete;
+            _firestoreError = ex.Message;
         }
     }
 
