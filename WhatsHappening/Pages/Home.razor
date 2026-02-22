@@ -35,69 +35,6 @@
         max-width: 600px;
     }
 
-    .square-button {
-        width: 30px !important;
-        height: 30px !important;
-    }
-
-    .completed-title {
-        text-decoration: line-through;
-        opacity: 0.5;
-    }
-
-    .todo-row {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        gap: 8px;
-    }
-
-    .todo-row fluent-checkbox {
-        min-width: 20px;
-    }
-
-    .todo-row .todo-title {
-        flex: 1;
-    }
-
-    .github-link {
-        font-size: 0.8rem;
-        opacity: 0.7;
-        margin-left: 28px;
-    }
-
-    .github-link a {
-        color: var(--accent-fill-rest);
-        text-decoration: none;
-    }
-
-    .github-link a:hover {
-        text-decoration: underline;
-    }
-
-    .github-state {
-        display: inline-block;
-        font-size: 0.7rem;
-        padding: 1px 6px;
-        border-radius: 10px;
-        margin-left: 6px;
-        font-weight: 600;
-    }
-
-    .github-state.open { background: #238636; color: white; }
-    .github-state.closed { background: #da3633; color: white; }
-    .github-state.merged { background: #8957e5; color: white; }
-
-    .github-preview {
-        margin-left: 28px;
-        margin-top: 4px;
-        margin-bottom: 8px;
-        padding: 8px 12px;
-        border-left: 3px solid var(--accent-fill-rest);
-        font-size: 0.85rem;
-        opacity: 0.8;
-    }
-
     .borderless-textfield::part(control) {
         background-color: var(--neutral-layer-1);
         border: 0px;
@@ -204,6 +141,24 @@
         try
         {
             _todoList = await Firestore.GetTodosAsync();
+
+            // Re-fetch titles for GitHub-linked items that have fallback titles
+            foreach (var todo in _todoList.Where(t => t.IsGitHubLinked && t.GitHubOwner is not null && t.GitHubNumber is not null))
+            {
+                var fallback = $"{todo.GitHubOwner}/{todo.GitHubRepo}#{todo.GitHubNumber}";
+                if (todo.Title == fallback || string.IsNullOrEmpty(todo.GitHubState))
+                {
+                    var details = await GitHub.FetchIssuePrDetailsAsync(
+                        todo.GitHubOwner!, todo.GitHubRepo!, todo.GitHubNumber!.Value, todo.GitHubType ?? "issue");
+                    if (details is not null)
+                    {
+                        todo.Title = details.Value.Title;
+                        todo.GitHubState = details.Value.State;
+                        if (todo.Id is not null)
+                            await Firestore.UpdateTodoAsync(todo.Id, new { title = todo.Title, gitHubState = todo.GitHubState });
+                    }
+                }
+            }
         }
         catch (Exception ex)
         {
