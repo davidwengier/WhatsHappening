@@ -36,8 +36,8 @@
     </div>
     @if (Item.IsGitHubLinked)
     {
-        <div style="display:flex;align-items:center;gap:6px;margin-left:48px;font-size:0.75rem;opacity:@(Item.IsComplete ? "0.4" : "0.7");">
-            <a href="@Item.GitHubUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@Item.GitHubOwner/@Item.GitHubRepo#@Item.GitHubNumber</a>
+        <div style="display:flex;align-items:center;gap:6px;margin-left:48px;font-size:0.75rem;opacity:@(Item.IsComplete ? "0.4" : "0.7");flex-wrap:wrap;">
+            <a href="@Item.GitHubUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;white-space:nowrap;">@Item.GitHubOwner/@Item.GitHubRepo#@Item.GitHubNumber</a>
             @if (Item.GitHubState is not null && !Item.IsComplete)
             {
                 <span style="font-size:0.65rem;padding:1px 6px;border-radius:10px;font-weight:600;background:@StateColor;color:white;">@Item.GitHubState</span>
@@ -45,7 +45,7 @@
             @if (Item.LinkedPrNumber is not null && !Item.IsComplete)
             {
                 <span style="opacity:0.7;">·</span>
-                <a href="@GitHubPrUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">PR: @Item.LinkedPrRepo#@Item.LinkedPrNumber</a>
+                <span style="white-space:nowrap;">PR: <a href="@GitHubPrUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@Item.LinkedPrRepo#@Item.LinkedPrNumber</a></span>
                 <span style="font-size:0.65rem;padding:1px 6px;border-radius:10px;font-weight:600;background:@LinkedPrColor;color:white;">@Item.LinkedPrState</span>
             }
         </div>
