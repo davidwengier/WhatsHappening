@@ -8,21 +8,16 @@ var edgeUserData = Path.Combine(
     "Microsoft", "Edge", "User Data");
 var tempDir = Path.Combine(Path.GetTempPath(), "playwright-edge-profile");
 
-// Copy localStorage and IndexedDB from the Edge profile so we get auth state
-CopyDirectory(Path.Combine(edgeUserData, "Default", "Local Storage"),
-              Path.Combine(tempDir, "Default", "Local Storage"));
-CopyDirectory(Path.Combine(edgeUserData, "Default", "IndexedDB"),
-              Path.Combine(tempDir, "Default", "IndexedDB"));
+// Clean stale temp profile to avoid corrupted state
+if (Directory.Exists(tempDir))
+    Directory.Delete(tempDir, recursive: true);
 
-foreach (var file in new[] { "Preferences", "Secure Preferences" })
-{
-    var src = Path.Combine(edgeUserData, "Default", file);
-    if (File.Exists(src))
-    {
-        Directory.CreateDirectory(Path.Combine(tempDir, "Default"));
-        File.Copy(src, Path.Combine(tempDir, "Default", file), overwrite: true);
-    }
-}
+// Copy the full Default profile (skip lock files and large caches)
+var skipDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    { "Cache", "Code Cache", "GPUCache", "Service Worker", "DawnGraphiteCache",
+      "DawnWebGPUBlobCache", "GrShaderCache", "ShaderCache", "component_crx_cache" };
+CopyDirectory(Path.Combine(edgeUserData, "Default"),
+              Path.Combine(tempDir, "Default"), skipDirs);
 
 var stateFile = Path.Combine(edgeUserData, "Local State");
 if (File.Exists(stateFile))
@@ -44,15 +39,23 @@ await page.ScreenshotAsync(new() { Path = output, FullPage = true });
 
 Console.WriteLine($"Screenshot saved to {output}");
 
-static void CopyDirectory(string source, string destination)
+static void CopyDirectory(string source, string destination, HashSet<string>? skipDirs = null)
 {
     if (!Directory.Exists(source)) return;
     Directory.CreateDirectory(destination);
-    foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+
+    foreach (var file in Directory.GetFiles(source))
     {
-        var relative = Path.GetRelativePath(source, file);
-        var dest = Path.Combine(destination, relative);
-        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-        File.Copy(file, dest, overwrite: true);
+        var name = Path.GetFileName(file);
+        if (name.Equals("LOCK", StringComparison.OrdinalIgnoreCase)) continue;
+        try { File.Copy(file, Path.Combine(destination, name), overwrite: true); }
+        catch (IOException) { /* skip locked files */ }
+    }
+
+    foreach (var dir in Directory.GetDirectories(source))
+    {
+        var name = Path.GetFileName(dir);
+        if (skipDirs?.Contains(name) == true) continue;
+        CopyDirectory(dir, Path.Combine(destination, name), skipDirs: null);
     }
 }
