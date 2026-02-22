@@ -11,17 +11,24 @@
         }
         else
         {
-            <span>To fetch work item details, you need a Personal Access Token (PAT) with <strong>Work Items (Read)</strong> scope.</span>
+            <span>To fetch work item details, you need a Personal Access Token (PAT).</span>
         }
     </p>
-    @if (!string.IsNullOrEmpty(_org))
-    {
-        <p style="font-size:0.85rem;">
-            <FluentAnchor Href="@($"https://dev.azure.com/{_org}/_usersettings/tokens")" Target="_blank" Appearance="Appearance.Hypertext">
-                Create a PAT for @_org
-            </FluentAnchor>
-        </p>
-    }
+    <div style="font-size:0.82rem;opacity:0.8;margin-bottom:0.75rem;">
+        <strong>How to create a PAT:</strong>
+        <ol style="margin:0.25rem 0;padding-left:1.25rem;">
+            <li>Go to <strong>Azure DevOps → User Settings → Personal Access Tokens</strong>
+                @if (!string.IsNullOrEmpty(_org))
+                {
+                    <br /><a href="@($"https://dev.azure.com/{_org}/_usersettings/tokens")" target="_blank"
+                            style="color:var(--accent-fill-rest);">dev.azure.com/@(_org)/_usersettings/tokens</a>
+                }
+            </li>
+            <li>Click <strong>+ New Token</strong></li>
+            <li>Set scopes: <strong>Work Items → Read</strong> and <strong>Code → Read</strong></li>
+            <li>Copy the generated token and paste it below</li>
+        </ol>
+    </div>
     <FluentTextField @bind-Value="_patInput" Immediate="true" @onkeypress="HandleKeyPress"
                      Placeholder="Paste your PAT here"
                      Style="width:100%;margin:0.5rem 0;"
