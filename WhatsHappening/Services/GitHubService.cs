@@ -81,6 +81,50 @@ public sealed partial class GitHubService
         return (title, state, body, labels);
     }
 
+    public async Task<(int Number, string Repo, string State)?> FetchLinkedPrAsync(string owner, string repo, int issueNumber)
+    {
+        var endpoint = $"https://api.github.com/repos/{owner}/{repo}/issues/{issueNumber}/timeline";
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+        request.Headers.UserAgent.ParseAdd("WhatsHappening/1.0");
+        request.Headers.Accept.ParseAdd("application/vnd.github+json");
+
+        var token = await _auth.GetGitHubTokenAsync();
+        if (token is not null)
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        using var response = await _http.SendAsync(request);
+        if (!response.IsSuccessStatusCode) return null;
+
+        using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+
+        // Walk timeline events looking for cross-referenced PRs
+        foreach (var ev in doc.RootElement.EnumerateArray())
+        {
+            if (ev.TryGetProperty("event", out var eventType) && eventType.GetString() == "cross-referenced"
+                && ev.TryGetProperty("source", out var source)
+                && source.TryGetProperty("issue", out var issue)
+                && issue.TryGetProperty("pull_request", out _))
+            {
+                var prNumber = issue.GetProperty("number").GetInt32();
+                var prState = issue.GetProperty("state").GetString() ?? "unknown";
+                if (prState == "closed"
+                    && issue.TryGetProperty("pull_request", out var prEl)
+                    && prEl.TryGetProperty("merged_at", out var mergedAt)
+                    && mergedAt.ValueKind != JsonValueKind.Null)
+                {
+                    prState = "merged";
+                }
+                var prRepoName = issue.TryGetProperty("repository", out var repoEl)
+                    ? repoEl.GetProperty("full_name").GetString() ?? $"{owner}/{repo}"
+                    : $"{owner}/{repo}";
+                return (prNumber, prRepoName, prState);
+            }
+        }
+
+        return null;
+    }
+
     [GeneratedRegex(@"https?://github\.com/(?<owner>[^/]+)/(?<repo>[^/]+)/(?<type>issues|pull)/(?<number>\d+)", RegexOptions.IgnoreCase)]
     private static partial Regex GitHubUrlRegex();
 }

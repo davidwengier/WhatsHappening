@@ -42,6 +42,12 @@
             {
                 <span style="font-size:0.65rem;padding:1px 6px;border-radius:10px;font-weight:600;background:@StateColor;color:white;">@Item.GitHubState</span>
             }
+            @if (Item.LinkedPrNumber is not null && !Item.IsComplete)
+            {
+                <span style="opacity:0.7;">·</span>
+                <span>PR: @Item.LinkedPrRepo#@Item.LinkedPrNumber</span>
+                <span style="font-size:0.65rem;padding:1px 6px;border-radius:10px;font-weight:600;background:@LinkedPrColor;color:white;">@Item.LinkedPrState</span>
+            }
         </div>
     }
     @if (Item.IsGitHubLinked && _expanded)
@@ -106,6 +112,14 @@
     }
 
     private string StateColor => Item.GitHubState switch
+    {
+        "open" => "#238636",
+        "closed" => "#da3633",
+        "merged" => "#8957e5",
+        _ => "#636c76"
+    };
+
+    private string LinkedPrColor => Item.LinkedPrState switch
     {
         "open" => "#238636",
         "closed" => "#da3633",

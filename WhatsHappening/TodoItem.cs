@@ -19,6 +19,11 @@ public sealed class TodoItem
     public string? GitHubBody { get; set; }
     public List<GitHubLabel>? GitHubLabels { get; set; }
 
+    // Linked PR (for issues only)
+    public int? LinkedPrNumber { get; set; }
+    public string? LinkedPrRepo { get; set; }
+    public string? LinkedPrState { get; set; }
+
     public bool IsGitHubLinked => GitHubUrl is not null;
 
     public TodoItem() => Title = string.Empty;

@@ -344,6 +344,14 @@
                 {
                     todo.Title = $"{owner}/{repo}#{number}";
                 }
+
+                if (type == "issue")
+                {
+                    var pr = await GitHub.FetchLinkedPrAsync(owner, repo, number);
+                    todo.LinkedPrNumber = pr?.Number;
+                    todo.LinkedPrRepo = pr?.Repo;
+                    todo.LinkedPrState = pr?.State;
+                }
             }
 
             try
@@ -413,13 +421,26 @@
             todo.GitHubState = details.Value.State;
             todo.GitHubBody = details.Value.Body;
             todo.GitHubLabels = details.Value.Labels;
+
+            // Fetch linked PR for issues
+            if (todo.GitHubType == "issue")
+            {
+                var pr = await GitHub.FetchLinkedPrAsync(todo.GitHubOwner, todo.GitHubRepo!, todo.GitHubNumber.Value);
+                todo.LinkedPrNumber = pr?.Number;
+                todo.LinkedPrRepo = pr?.Repo;
+                todo.LinkedPrState = pr?.State;
+            }
+
             if (todo.Id is not null)
                 await Firestore.UpdateTodoAsync(todo.Id, new
                 {
                     title = todo.Title,
                     gitHubState = todo.GitHubState,
                     gitHubBody = todo.GitHubBody,
-                    gitHubLabels = todo.GitHubLabels?.Select(l => new { name = l.Name, color = l.Color }).ToArray()
+                    gitHubLabels = todo.GitHubLabels?.Select(l => new { name = l.Name, color = l.Color }).ToArray(),
+                    linkedPrNumber = todo.LinkedPrNumber,
+                    linkedPrRepo = todo.LinkedPrRepo,
+                    linkedPrState = todo.LinkedPrState
                 });
         }
     }
