@@ -81,4 +81,11 @@ public sealed class FirestoreService
 
     public async Task DeleteGroupAsync(string docId)
         => await _js.InvokeVoidAsync("firebaseInterop.deleteGroup", docId);
+
+    // Settings
+    public async Task<string?> GetSettingAsync(string key)
+        => await _js.InvokeAsync<string?>("firebaseInterop.getSetting", key);
+
+    public async Task SetSettingAsync(string key, string value)
+        => await _js.InvokeVoidAsync("firebaseInterop.setSetting", key, value);
 }

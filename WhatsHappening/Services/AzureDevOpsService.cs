@@ -10,16 +10,19 @@ public sealed partial class AzureDevOpsService
 {
     private readonly HttpClient _http;
     private readonly IJSRuntime _js;
+    private readonly FirestoreService _firestore;
+    private string? _cachedPat;
 
     private static readonly Regex AzDoWorkItemUrl = AzDoWorkItemRegex();
     private static readonly Regex AzDoWorkItemUrlLegacy = AzDoWorkItemLegacyRegex();
     private static readonly Regex AzDoPrUrl = AzDoPrRegex();
     private static readonly Regex AzDoPrUrlLegacy = AzDoPrLegacyRegex();
 
-    public AzureDevOpsService(HttpClient http, IJSRuntime js)
+    public AzureDevOpsService(HttpClient http, IJSRuntime js, FirestoreService firestore)
     {
         _http = http;
         _js = js;
+        _firestore = firestore;
     }
 
     public static bool TryParseUrl(string input, out string org, out string project, out int id, out string type, out string? repo)
@@ -78,10 +81,33 @@ public sealed partial class AzureDevOpsService
     }
 
     public async Task<string?> GetPatAsync()
-        => await _js.InvokeAsync<string?>("sessionStorage.getItem", "azdo_pat");
+    {
+        if (_cachedPat is not null) return _cachedPat;
+        try
+        {
+            _cachedPat = await _firestore.GetSettingAsync("azdo_pat");
+        }
+        catch
+        {
+            // Firestore not available, fall back to sessionStorage
+            _cachedPat = await _js.InvokeAsync<string?>("sessionStorage.getItem", "azdo_pat");
+        }
+        return _cachedPat;
+    }
 
     public async Task SetPatAsync(string pat)
-        => await _js.InvokeVoidAsync("sessionStorage.setItem", "azdo_pat", pat);
+    {
+        _cachedPat = pat;
+        try
+        {
+            await _firestore.SetSettingAsync("azdo_pat", pat);
+        }
+        catch
+        {
+            // Fallback to sessionStorage if Firestore unavailable
+            await _js.InvokeVoidAsync("sessionStorage.setItem", "azdo_pat", pat);
+        }
+    }
 
     public async Task<bool> HasPatAsync()
         => !string.IsNullOrEmpty(await GetPatAsync());

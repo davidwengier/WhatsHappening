@@ -95,6 +95,19 @@ window.firebaseInterop = {
         await db.collection("groups").doc(docId).delete();
     },
 
+    // Settings (key-value store)
+    async getSetting(key) {
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 10000));
+        const query = db.collection("settings").doc(key).get().then((doc) => {
+            return doc.exists ? doc.data().value : null;
+        });
+        return Promise.race([query, timeout]);
+    },
+
+    async setSetting(key, value) {
+        await db.collection("settings").doc(key).set({ value: value });
+    },
+
     async signInWithGitHub() {
         const provider = new firebase.auth.GithubAuthProvider();
         provider.addScope("repo");
