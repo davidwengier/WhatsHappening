@@ -245,6 +245,25 @@
             _focusGroupInput = false;
             _groupTextField.FocusAsync();
         }
+
+        if (firstRender)
+        {
+            _ = RefreshAllGitHubStatuses();
+        }
+    }
+
+    private async Task RefreshAllGitHubStatuses()
+    {
+        var githubItems = _todoList.Where(t => t.IsGitHubLinked && !t.IsComplete).ToList();
+        foreach (var item in githubItems)
+        {
+            try
+            {
+                await RefreshGitHub(item);
+                StateHasChanged();
+            }
+            catch { }
+        }
     }
 
     private async Task AddTodo()
