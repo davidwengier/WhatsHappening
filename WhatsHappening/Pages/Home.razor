@@ -83,6 +83,11 @@
     }
 </style>
 
+@if (_refreshingAll)
+{
+    <FluentProgress Style="height:2px;--progress-min-height:2px;" />
+}
+
 <div class="floating-input">
     <div class="input-row">
         <FluentTextField @bind-Value="_newTodoItem"
@@ -254,6 +259,7 @@
     private bool _focusGroupInput;
 
     private TodoItem? _draggedItem;
+    private bool _refreshingAll;
 
     private List<TodoItem> UngroupedActive => _todoList
         .Where(t => !t.IsComplete && string.IsNullOrEmpty(t.GroupId))
@@ -304,16 +310,20 @@
 
     private async Task RefreshAllGitHubStatuses()
     {
+        _refreshingAll = true;
+        await InvokeAsync(StateHasChanged);
         var githubItems = _todoList.Where(t => t.IsGitHubLinked && !t.IsComplete).ToList();
         foreach (var item in githubItems)
         {
             try
             {
                 await RefreshGitHub(item);
-                StateHasChanged();
+                await InvokeAsync(StateHasChanged);
             }
             catch { }
         }
+        _refreshingAll = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task AddTodo()
