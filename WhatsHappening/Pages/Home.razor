@@ -97,7 +97,13 @@
         }
         else
         {
-            @if (_activeTodos.Count > 0)
+            @if (_activeTodos.Count == 0)
+            {
+                <div style="text-align: center; padding: 2rem; color: var(--neutral-foreground-hint);">
+                    <p>No todos yet. Type something above to get started!</p>
+                </div>
+            }
+            else if (_activeTodos.Count > 0)
             {
                 <FluentGrid Spacing="1">
                     <FluentGridItem xs="12">
