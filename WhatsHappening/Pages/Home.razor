@@ -4,7 +4,6 @@
 @using WhatsHappening.Services
 @inject FirestoreService Firestore
 @inject GitHubService GitHub
-@inject AzureDevOpsService AzDo
 @attribute [Authorize]
 
 <PageTitle>What's Happening</PageTitle>
@@ -88,19 +87,6 @@
 {
     <FluentProgress Min="0" Max="@_refreshTotal" Value="@_refreshDone"
                     Style="height:2px;--progress-min-height:2px;" />
-}
-
-@if (_azdoPatExpired)
-{
-    <div @onclick="ShowPatDialog" style="padding:6px 12px;background:#da3633;color:white;font-size:0.8rem;text-align:center;cursor:pointer;">
-        ⚠️ Azure DevOps token expired — click to update
-    </div>
-}
-
-@if (_showPatDialog)
-{
-    <AzDoPatDialog Org="@_pendingAzDoOrg" IsExpiry="_azdoPatExpired"
-                   OnPatProvided="OnPatProvided" OnCancelled="OnPatCancelled" />
 }
 
 <div class="floating-input">
@@ -276,12 +262,7 @@
     private TodoItem? _draggedItem;
     private int _refreshTotal;
     private int _refreshDone;
-    private bool _showPatDialog;
-    private bool _azdoPatExpired;
-    private string? _pendingAzDoOrg;
-    private TaskCompletionSource<bool>? _patDialogTcs;
-
-    private List<TodoItem> UngroupedActive => _todoList
+    private List<TodoItem> UngroupedActive=> _todoList
         .Where(t => !t.IsComplete && string.IsNullOrEmpty(t.GroupId))
         .OrderBy(t => t.Order).ToList();
 
@@ -328,7 +309,7 @@
 
     private async Task RefreshAllGitHubStatuses()
     {
-        var externalItems = _todoList.Where(t => (t.IsGitHubLinked || t.IsAzDoLinked) && !t.IsComplete).ToList();
+        var externalItems = _todoList.Where(t => t.IsGitHubLinked && !t.IsComplete).ToList();
         if (externalItems.Count == 0) return;
 
         _refreshTotal = externalItems.Count;
@@ -337,18 +318,7 @@
 
         foreach (var item in externalItems)
         {
-            try
-            {
-                if (item.IsGitHubLinked)
-                    await RefreshGitHub(item);
-                else if (item.IsAzDoLinked)
-                    await RefreshAzDo(item);
-            }
-            catch (AzDoAuthException)
-            {
-                _azdoPatExpired = true;
-                StateHasChanged();
-            }
+            try { await RefreshGitHub(item); }
             catch { }
             _refreshDone++;
             StateHasChanged();
@@ -398,68 +368,7 @@
                     todo.LinkedPrState = pr?.State;
                 }
             }
-            else if (AzureDevOpsService.TryParseUrl(_newTodoItem, out var azOrg, out var azProject, out var azId, out var azType, out var azRepo))
-            {
-                todo.AzDoUrl = _newTodoItem.Trim();
-                todo.AzDoOrg = azOrg;
-                todo.AzDoProject = azProject;
-                todo.AzDoId = azId;
-                todo.AzDoRepo = azRepo;
 
-                // Ensure we have a PAT
-                if (!await AzDo.HasPatAsync())
-                {
-                    _pendingAzDoOrg = azOrg;
-                    var gotPat = await RequestPatAsync();
-                    if (!gotPat)
-                    {
-                        todo.Title = $"{azProject}#{azId}";
-                        todo.AzDoType = azType == "pullrequest" ? "Pull Request" : null;
-                        goto save;
-                    }
-                }
-
-                try
-                {
-                    if (azType == "pullrequest" && azRepo is not null)
-                    {
-                        todo.AzDoType = "Pull Request";
-                        var pr = await AzDo.FetchPullRequestAsync(azOrg, azProject, azId, azRepo);
-                        if (pr is not null)
-                        {
-                            todo.Title = pr.Value.Title;
-                            todo.AzDoState = pr.Value.State;
-                            todo.AzDoRepo = pr.Value.Repo;
-                        }
-                        else
-                        {
-                            todo.Title = $"{azProject}#{azId}";
-                        }
-                    }
-                    else
-                    {
-                        var wi = await AzDo.FetchWorkItemAsync(azOrg, azProject, azId);
-                        if (wi is not null)
-                        {
-                            todo.Title = wi.Value.Title;
-                            todo.AzDoState = wi.Value.State;
-                            todo.AzDoType = wi.Value.Type;
-                            todo.AzDoBody = wi.Value.Body;
-                            todo.AzDoAssignedTo = wi.Value.AssignedTo;
-                        }
-                        else
-                        {
-                            todo.Title = $"{azProject}#{azId}";
-                        }
-                    }
-                }
-                catch (AzDoAuthException)
-                {
-                    todo.Title = $"{azProject}#{azId}";
-                }
-            }
-
-            save:
             try
             {
                 todo.Id = await Firestore.AddTodoAsync(todo);
@@ -549,52 +458,6 @@
                     linkedPrState = todo.LinkedPrState
                 });
         }
-    }
-
-    private async Task RefreshAzDo(TodoItem todo)
-    {
-        if (!todo.IsAzDoLinked || todo.AzDoOrg is null || todo.AzDoId is null) return;
-
-        if (todo.AzDoType == "Pull Request" && todo.AzDoRepo is not null)
-        {
-            var pr = await AzDo.FetchPullRequestAsync(todo.AzDoOrg, todo.AzDoProject!, todo.AzDoId.Value, todo.AzDoRepo);
-            if (pr is not null)
-            {
-                todo.Title = pr.Value.Title;
-                todo.AzDoState = pr.Value.State;
-            }
-        }
-        else
-        {
-            var wi = await AzDo.FetchWorkItemAsync(todo.AzDoOrg, todo.AzDoProject!, todo.AzDoId.Value);
-            if (wi is not null)
-            {
-                todo.Title = wi.Value.Title;
-                todo.AzDoState = wi.Value.State;
-                todo.AzDoType = wi.Value.Type;
-                todo.AzDoBody = wi.Value.Body;
-                todo.AzDoAssignedTo = wi.Value.AssignedTo;
-            }
-
-            // Fetch linked PR
-            var linkedPr = await AzDo.FetchLinkedPrFromWorkItemAsync(todo.AzDoOrg, todo.AzDoProject!, todo.AzDoId.Value);
-            todo.AzDoLinkedPrId = linkedPr?.Id;
-            todo.AzDoLinkedPrRepo = linkedPr?.Repo;
-            todo.AzDoLinkedPrState = linkedPr?.State;
-        }
-
-        if (todo.Id is not null)
-            await Firestore.UpdateTodoAsync(todo.Id, new
-            {
-                title = todo.Title,
-                azDoState = todo.AzDoState,
-                azDoType = todo.AzDoType,
-                azDoBody = todo.AzDoBody,
-                azDoAssignedTo = todo.AzDoAssignedTo,
-                azDoLinkedPrId = todo.AzDoLinkedPrId,
-                azDoLinkedPrRepo = todo.AzDoLinkedPrRepo,
-                azDoLinkedPrState = todo.AzDoLinkedPrState
-            });
     }
 
     private void HandleDragStart(TodoItem item) => _draggedItem = item;
@@ -690,30 +553,4 @@
         if (e.Key == "Enter") await AddGroup();
     }
 
-    private async Task<bool> RequestPatAsync()
-    {
-        _patDialogTcs = new TaskCompletionSource<bool>();
-        _showPatDialog = true;
-        StateHasChanged();
-        var result = await _patDialogTcs.Task;
-        _showPatDialog = false;
-        StateHasChanged();
-        return result;
-    }
-
-    private void OnPatProvided(string pat)
-    {
-        _azdoPatExpired = false;
-        _patDialogTcs?.TrySetResult(true);
-    }
-
-    private void OnPatCancelled()
-    {
-        _patDialogTcs?.TrySetResult(false);
-    }
-
-    private void ShowPatDialog()
-    {
-        _ = RequestPatAsync();
-    }
 }

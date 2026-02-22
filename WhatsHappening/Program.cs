@@ -15,7 +15,6 @@ builder.Services.AddFluentUIComponents();
 builder.Services.AddScoped<FirebaseAuthService>();
 builder.Services.AddScoped<FirestoreService>();
 builder.Services.AddScoped<GitHubService>();
-builder.Services.AddScoped<AzureDevOpsService>();
 builder.Services.AddScoped<FirebaseAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
     sp.GetRequiredService<FirebaseAuthStateProvider>());

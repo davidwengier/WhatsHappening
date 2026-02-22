@@ -33,19 +33,7 @@ public sealed class FirestoreService
             gitHubLabels = item.GitHubLabels?.Select(l => new { name = l.Name, color = l.Color }).ToArray(),
             linkedPrNumber = item.LinkedPrNumber,
             linkedPrRepo = item.LinkedPrRepo,
-            linkedPrState = item.LinkedPrState,
-            azDoUrl = item.AzDoUrl,
-            azDoOrg = item.AzDoOrg,
-            azDoProject = item.AzDoProject,
-            azDoId = item.AzDoId,
-            azDoType = item.AzDoType,
-            azDoState = item.AzDoState,
-            azDoBody = item.AzDoBody,
-            azDoAssignedTo = item.AzDoAssignedTo,
-            azDoRepo = item.AzDoRepo,
-            azDoLinkedPrId = item.AzDoLinkedPrId,
-            azDoLinkedPrState = item.AzDoLinkedPrState,
-            azDoLinkedPrRepo = item.AzDoLinkedPrRepo
+            linkedPrState = item.LinkedPrState
         };
         return await _js.InvokeAsync<string>("firebaseInterop.addTodo", data);
     }

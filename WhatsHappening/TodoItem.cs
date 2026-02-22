@@ -24,23 +24,8 @@ public sealed class TodoItem
     public string? LinkedPrRepo { get; set; }
     public string? LinkedPrState { get; set; }
 
-    // Azure DevOps work item/PR link
-    public string? AzDoUrl { get; set; }
-    public string? AzDoOrg { get; set; }
-    public string? AzDoProject { get; set; }
-    public int? AzDoId { get; set; }
-    public string? AzDoType { get; set; }    // "Bug", "Task", "User Story", "Feature", "Pull Request", etc.
-    public string? AzDoState { get; set; }   // "New", "Active", "Resolved", "Closed", etc.
-    public string? AzDoBody { get; set; }
-    public string? AzDoAssignedTo { get; set; }
-    public string? AzDoRepo { get; set; }    // For PRs: repo name
-    public int? AzDoLinkedPrId { get; set; }
-    public string? AzDoLinkedPrState { get; set; }
-    public string? AzDoLinkedPrRepo { get; set; }
-
     public bool IsGitHubLinked => GitHubUrl is not null;
-    public bool IsAzDoLinked => AzDoUrl is not null;
-    public bool IsExternalLinked => IsGitHubLinked || IsAzDoLinked;
+    public bool IsExternalLinked => IsGitHubLinked;
 
     public TodoItem() => Title = string.Empty;
 
