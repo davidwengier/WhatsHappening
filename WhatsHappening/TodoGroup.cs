@@ -1,0 +1,12 @@
+namespace WhatsHappening;
+
+public sealed class TodoGroup
+{
+    public string? Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int Order { get; set; }
+
+    public TodoGroup() { }
+
+    public TodoGroup(string name) => Name = name;
+}

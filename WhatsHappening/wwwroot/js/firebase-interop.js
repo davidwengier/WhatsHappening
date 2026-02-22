@@ -68,6 +68,33 @@ window.firebaseInterop = {
         await batch.commit();
     },
 
+    // Group operations
+
+    async getGroups() {
+        const timeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(
+                "Firestore request timed out. Is Cloud Firestore enabled in your Firebase project?"
+            )), 10000)
+        );
+        const query = db.collection("groups").orderBy("order").get().then((snapshot) =>
+            snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+        return Promise.race([query, timeout]);
+    },
+
+    async addGroup(group) {
+        const docRef = await db.collection("groups").add(group);
+        return docRef.id;
+    },
+
+    async updateGroup(docId, data) {
+        await db.collection("groups").doc(docId).update(data);
+    },
+
+    async deleteGroup(docId) {
+        await db.collection("groups").doc(docId).delete();
+    },
+
     async signInWithGitHub() {
         const provider = new firebase.auth.GithubAuthProvider();
         provider.addScope("repo");

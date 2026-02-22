@@ -6,6 +6,7 @@ public sealed class TodoItem
     public string Title { get; set; }
     public bool IsComplete { get; set; }
     public int Order { get; set; }
+    public string? GroupId { get; set; }
     public long? CompletedAt { get; set; }
 
     // GitHub issue/PR link

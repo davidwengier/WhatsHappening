@@ -49,6 +49,14 @@
         background-color: var(--neutral-layer-1);
         border: 0px;
     }
+
+    .add-group-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 0.75rem;
+        padding: 4px 0;
+    }
 </style>
 
 <div class="floating-input">
@@ -56,9 +64,22 @@
         <FluentTextField @bind-Value="_newTodoItem"
                          Immediate="true"
                          @onkeypress="HandleKeyPress"
-                         Placeholder="Enter a Todo"
+                         Placeholder="@InputPlaceholder"
                          Class="borderless-textfield"
                          Appearance="FluentInputAppearance.Filled" />
+        @if (_groups.Count > 0)
+        {
+            <FluentSelect TOption="string"
+                          Value="@_selectedGroupId"
+                          ValueChanged="@((string v) => _selectedGroupId = v)"
+                          Style="min-width:120px;max-width:160px;">
+                <FluentOption Value="">Ungrouped</FluentOption>
+                @foreach (var g in _groups.OrderBy(g => g.Order))
+                {
+                    <FluentOption Value="@g.Id">@g.Name</FluentOption>
+                }
+            </FluentSelect>
+        }
         <FluentButton @onclick="AddTodo" Title="Add todo" AriaLabel="Add todo"
                       Style="width:30px!important;height:30px!important;flex-shrink:0;"
                       IconStart="new Size16.Add()">
@@ -77,32 +98,17 @@
             <div style="text-align: center; padding: 2rem; color: var(--neutral-foreground-hint);">
                 <FluentIcon Value="new Size24.CloudDismiss()" Color="Color.Neutral" />
                 <h3>Firestore is not available</h3>
-                <p>
-                    To save your todos, you need to enable Cloud Firestore in your Firebase project.
-                </p>
-                <p>
-                    <FluentAnchor Href="setup-help" Appearance="Appearance.Accent">View setup guide</FluentAnchor>
-                </p>
+                <p>To save your todos, you need to enable Cloud Firestore in your Firebase project.</p>
+                <p><FluentAnchor Href="setup-help" Appearance="Appearance.Accent">View setup guide</FluentAnchor></p>
                 <p style="font-size: 0.85rem; opacity: 0.7;">@_firestoreError</p>
-            </div>
-        }
-        else if (_activeTodos.Count == 0 && _completedTodos.Count == 0)
-        {
-            <div style="text-align: center; padding: 2rem; color: var(--neutral-foreground-hint);">
-                <p>No todos yet. Type something above to get started!</p>
             </div>
         }
         else
         {
-            @if (_activeTodos.Count == 0)
+            @* Ungrouped active items *@
+            @if (UngroupedActive.Count > 0)
             {
-                <div style="text-align: center; padding: 2rem; color: var(--neutral-foreground-hint);">
-                    <p>No todos yet. Type something above to get started!</p>
-                </div>
-            }
-            else
-            {
-                @foreach (var todo in _activeTodos)
+                @foreach (var todo in UngroupedActive)
                 {
                     <TodoItemRow Item="@todo"
                                  OnToggleComplete="ToggleComplete"
@@ -111,19 +117,72 @@
                 }
             }
 
-            @if (_completedTodos.Count > 0)
+            @* User-created groups *@
+            @foreach (var group in _groups.OrderBy(g => g.Order))
             {
-                <FluentAccordion Style="margin-top: 1rem;">
-                    <FluentAccordionItem Heading="@($"Completed ({_completedTodos.Count})")" Expanded="_completedExpanded">
-                        @foreach (var todo in _completedTodos)
-                        {
-                            <TodoItemRow Item="@todo"
-                                         OnToggleComplete="ToggleComplete"
-                                         OnDelete="RemoveTodo"
-                                         OnRefresh="RefreshGitHub" />
-                        }
-                    </FluentAccordionItem>
-                </FluentAccordion>
+                var items = ActiveItemsForGroup(group.Id!);
+                <TodoGroupSection Heading="@($"{group.Name} ({items.Count})")"
+                                  Items="items"
+                                  OnToggleComplete="ToggleComplete"
+                                  OnDelete="RemoveTodo"
+                                  OnRefresh="RefreshGitHub"
+                                  OnDeleteGroup="@(() => DeleteGroup(group))" />
+            }
+
+            @* Empty state *@
+            @if (AllActiveCount == 0 && CompletedItems.Count == 0)
+            {
+                <div style="text-align: center; padding: 2rem; color: var(--neutral-foreground-hint);">
+                    <p>No todos yet. Type something above to get started!</p>
+                </div>
+            }
+            else if (AllActiveCount == 0)
+            {
+                <div style="text-align: center; padding: 2rem; color: var(--neutral-foreground-hint);">
+                    <p>No todos yet. Type something above to get started!</p>
+                </div>
+            }
+
+            @* Add group button/input *@
+            <div class="add-group-row">
+                @if (_addingGroup)
+                {
+                    <FluentTextField @bind-Value="_newGroupName"
+                                     Immediate="true"
+                                     @onkeypress="HandleGroupKeyPress"
+                                     Placeholder="Group name"
+                                     Style="flex:1;"
+                                     Appearance="FluentInputAppearance.Filled" />
+                    <FluentButton OnClick="AddGroup" Title="Create group"
+                                  Style="width:30px!important;height:30px!important;"
+                                  IconStart="new Size16.Checkmark()">
+                    </FluentButton>
+                    <FluentButton OnClick="@(() => _addingGroup = false)" Title="Cancel"
+                                  Style="width:30px!important;height:30px!important;"
+                                  IconStart="new Size16.Dismiss()">
+                    </FluentButton>
+                }
+                else
+                {
+                    <FluentButton Appearance="Appearance.Lightweight"
+                                  OnClick="@(() => _addingGroup = true)"
+                                  IconStart="new Size16.Add()"
+                                  Style="font-size:0.85rem;opacity:0.6;">
+                        Add group
+                    </FluentButton>
+                }
+            </div>
+
+            @* Completed items (built-in group) *@
+            @if (CompletedItems.Count > 0)
+            {
+                <TodoGroupSection Heading="@($"Completed ({CompletedItems.Count})")"
+                                  Items="CompletedItems"
+                                  IsBuiltIn="true"
+                                  StartExpanded="false"
+                                  OnToggleComplete="ToggleComplete"
+                                  OnDelete="RemoveTodo"
+                                  OnRefresh="RefreshGitHub" />
             }
         }
     </div>
@@ -131,19 +190,39 @@
 
 @code
 {
-    private string? _newTodoItem { get; set; }
+    private string? _newTodoItem;
+    private string _selectedGroupId = "";
     private List<TodoItem> _todoList = [];
-    private List<TodoItem> _activeTodos => _todoList.Where(t => !t.IsComplete).OrderBy(t => t.Order).ToList();
-    private List<TodoItem> _completedTodos => _todoList.Where(t => t.IsComplete).OrderByDescending(t => t.CompletedAt ?? 0).ToList();
+    private List<TodoGroup> _groups = [];
     private bool _loading = true;
-    private bool _completedExpanded = false;
     private string? _firestoreError;
+    private bool _addingGroup;
+    private string? _newGroupName;
+
+    private string InputPlaceholder => _selectedGroupId == "" ? "Enter a Todo" : $"Add to {_groups.FirstOrDefault(g => g.Id == _selectedGroupId)?.Name ?? "group"}";
+
+    private List<TodoItem> UngroupedActive => _todoList
+        .Where(t => !t.IsComplete && string.IsNullOrEmpty(t.GroupId))
+        .OrderBy(t => t.Order).ToList();
+
+    private List<TodoItem> ActiveItemsForGroup(string groupId) => _todoList
+        .Where(t => !t.IsComplete && t.GroupId == groupId)
+        .OrderBy(t => t.Order).ToList();
+
+    private List<TodoItem> CompletedItems => _todoList
+        .Where(t => t.IsComplete)
+        .OrderByDescending(t => t.CompletedAt ?? 0).ToList();
+
+    private int AllActiveCount => _todoList.Count(t => !t.IsComplete);
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            _todoList = await Firestore.GetTodosAsync();
+            var todosTask = Firestore.GetTodosAsync();
+            var groupsTask = Firestore.GetGroupsAsync();
+            _todoList = await todosTask;
+            _groups = await groupsTask;
         }
         catch (Exception ex)
         {
@@ -160,8 +239,9 @@
         if (!string.IsNullOrWhiteSpace(_newTodoItem))
         {
             var todo = new TodoItem(_newTodoItem) { Order = _todoList.Count };
+            if (!string.IsNullOrEmpty(_selectedGroupId))
+                todo.GroupId = _selectedGroupId;
 
-            // Detect GitHub URL
             if (GitHubService.TryParseGitHubUrl(_newTodoItem, out var owner, out var repo, out var number, out var type))
             {
                 todo.GitHubUrl = _newTodoItem.Trim();
@@ -195,6 +275,48 @@
             {
                 _firestoreError = ex.Message;
             }
+        }
+    }
+
+    private async Task AddGroup()
+    {
+        if (!string.IsNullOrWhiteSpace(_newGroupName))
+        {
+            var group = new TodoGroup(_newGroupName.Trim()) { Order = _groups.Count };
+            try
+            {
+                group.Id = await Firestore.AddGroupAsync(group);
+                _groups.Add(group);
+                _newGroupName = string.Empty;
+                _addingGroup = false;
+                _firestoreError = null;
+            }
+            catch (Exception ex)
+            {
+                _firestoreError = ex.Message;
+            }
+        }
+    }
+
+    private async Task DeleteGroup(TodoGroup group)
+    {
+        if (group.Id is null) return;
+        try
+        {
+            // Move items in this group to ungrouped
+            foreach (var todo in _todoList.Where(t => t.GroupId == group.Id))
+            {
+                todo.GroupId = null;
+                if (todo.Id is not null)
+                    await Firestore.UpdateTodoAsync(todo.Id, new { groupId = (string?)null });
+            }
+            await Firestore.DeleteGroupAsync(group.Id);
+            _groups.Remove(group);
+            _firestoreError = null;
+        }
+        catch (Exception ex)
+        {
+            _firestoreError = ex.Message;
         }
     }
 
@@ -257,9 +379,11 @@
 
     private async Task HandleKeyPress(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter")
-        {
-            await AddTodo();
-        }
+        if (e.Key == "Enter") await AddTodo();
+    }
+
+    private async Task HandleGroupKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await AddGroup();
     }
 }
