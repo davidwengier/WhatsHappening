@@ -1,0 +1,72 @@
+@using WhatsHappening.Services
+@inject AzureDevOpsService AzDo
+
+<FluentDialog @ref="_dialog" Modal="true" TrapFocus="true" @ondialogdismiss="Cancel"
+              Style="min-width:350px;max-width:500px;padding:1.5rem;">
+    <h3 style="margin-top:0;">@(_isExpiry ? "Azure DevOps Token Expired" : "Sign in to Azure DevOps")</h3>
+    <p style="font-size:0.85rem;opacity:0.8;">
+        @if (_isExpiry)
+        {
+            <span>Your Azure DevOps PAT has expired or been revoked. Please create a new one.</span>
+        }
+        else
+        {
+            <span>To fetch work item details, you need a Personal Access Token (PAT) with <strong>Work Items (Read)</strong> scope.</span>
+        }
+    </p>
+    @if (!string.IsNullOrEmpty(_org))
+    {
+        <p style="font-size:0.85rem;">
+            <FluentAnchor Href="@($"https://dev.azure.com/{_org}/_usersettings/tokens")" Target="_blank" Appearance="Appearance.Hypertext">
+                Create a PAT for @_org
+            </FluentAnchor>
+        </p>
+    }
+    <FluentTextField @bind-Value="_patInput" Immediate="true" @onkeypress="HandleKeyPress"
+                     Placeholder="Paste your PAT here"
+                     Style="width:100%;margin:0.5rem 0;"
+                     TextFieldType="TextFieldType.Password" />
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:1rem;">
+        <FluentButton Appearance="Appearance.Stealth" OnClick="Cancel">Cancel</FluentButton>
+        <FluentButton Appearance="Appearance.Accent" OnClick="Submit" Disabled="@string.IsNullOrWhiteSpace(_patInput)">Connect</FluentButton>
+    </div>
+</FluentDialog>
+
+@code {
+    [Parameter] public EventCallback<string> OnPatProvided { get; set; }
+    [Parameter] public EventCallback OnCancelled { get; set; }
+    [Parameter] public string? Org { get; set; }
+    [Parameter] public bool IsExpiry { get; set; }
+
+    private FluentDialog? _dialog;
+    private string? _patInput;
+    private string? _org;
+    private bool _isExpiry;
+
+    protected override void OnParametersSet()
+    {
+        _org = Org;
+        _isExpiry = IsExpiry;
+    }
+
+    private async Task Submit()
+    {
+        if (!string.IsNullOrWhiteSpace(_patInput))
+        {
+            await AzDo.SetPatAsync(_patInput.Trim());
+            await OnPatProvided.InvokeAsync(_patInput.Trim());
+            _patInput = null;
+        }
+    }
+
+    private async Task Cancel()
+    {
+        _patInput = null;
+        await OnCancelled.InvokeAsync();
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Submit();
+    }
+}
