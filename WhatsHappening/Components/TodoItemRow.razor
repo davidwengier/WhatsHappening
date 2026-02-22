@@ -49,7 +49,7 @@
             @if (Item.LinkedPrNumber is not null && !Item.IsComplete)
             {
                 <span style="opacity:0.7;">·</span>
-                <span>PR: @Item.LinkedPrRepo#@Item.LinkedPrNumber</span>
+                <a href="@GitHubPrUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">PR: @Item.LinkedPrRepo#@Item.LinkedPrNumber</a>
                 <span style="font-size:0.65rem;padding:1px 6px;border-radius:10px;font-weight:600;background:@LinkedPrColor;color:white;">@Item.LinkedPrState</span>
             }
         </div>
@@ -70,7 +70,7 @@
             @if (Item.AzDoLinkedPrId is not null && !Item.IsComplete)
             {
                 <span style="opacity:0.7;">·</span>
-                <span>PR: @Item.AzDoLinkedPrRepo#@Item.AzDoLinkedPrId</span>
+                <a href="@AzDoPrUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">PR: @Item.AzDoLinkedPrRepo#@Item.AzDoLinkedPrId</a>
                 <span style="font-size:0.65rem;padding:1px 6px;border-radius:10px;font-weight:600;background:@AzDoPrColor;color:white;">@Item.AzDoLinkedPrState</span>
             }
         </div>
@@ -188,6 +188,14 @@
         "abandoned" => "#da3633",
         _ => "#636c76"
     };
+
+    private string? GitHubPrUrl => Item.LinkedPrRepo is not null && Item.LinkedPrNumber is not null
+        ? $"https://github.com/{Item.LinkedPrRepo}/pull/{Item.LinkedPrNumber}"
+        : null;
+
+    private string? AzDoPrUrl => Item.AzDoOrg is not null && Item.AzDoProject is not null && Item.AzDoLinkedPrRepo is not null && Item.AzDoLinkedPrId is not null
+        ? $"https://dev.azure.com/{Item.AzDoOrg}/{Item.AzDoProject}/_git/{Item.AzDoLinkedPrRepo}/pullrequest/{Item.AzDoLinkedPrId}"
+        : null;
 
     private MarkupString TypeIcon => new(Item switch
     {
