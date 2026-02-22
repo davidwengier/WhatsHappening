@@ -1,13 +1,13 @@
-namespace WhatsHappening
-{
-    public sealed class TodoItem
-    {
-        public string Title { get; set; }
-        public bool IsComplete { get; set; } = false;
+namespace WhatsHappening;
 
-        public TodoItem(string title)
-        {
-            Title = title;
-        }
-    }
+public sealed class TodoItem
+{
+    public string? Id { get; set; }
+    public string Title { get; set; }
+    public bool IsComplete { get; set; }
+    public int Order { get; set; }
+
+    public TodoItem() => Title = string.Empty;
+
+    public TodoItem(string title) => Title = title;
 }

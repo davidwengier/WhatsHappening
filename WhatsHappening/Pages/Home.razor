@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using Microsoft.FluentUI.AspNetCore.Components.Icons.Regular
 @using Microsoft.AspNetCore.Components.Web
+@using WhatsHappening.Services
+@inject FirestoreService Firestore
 @attribute [Authorize]
 
 <PageTitle>What's Happening</PageTitle>
@@ -45,6 +47,16 @@
     }
 </style>
 
+@if (_firestoreError is not null)
+{
+    <FluentMessageBar Title="Firestore not available" Intent="MessageIntent.Error" Style="margin: 1rem;">
+        Could not connect to Firestore. Make sure you've
+        <FluentAnchor Href="setup-help" Appearance="Appearance.Hypertext">enabled Firestore</FluentAnchor>
+        in your Firebase project.
+        <br /><small>@_firestoreError</small>
+    </FluentMessageBar>
+}
+
 <div class="floating-input">
     <FluentGrid Spacing="1">
         <FluentGridItem xs="11">
@@ -65,55 +77,101 @@
 
 <div class="centered-list-container">
     <div class="list-content">
-        <FluentGrid Spacing="1">
-            <FluentGridItem xs="12">
-                <FluentSortableList Items="_todoList" ListItemBackgroundColor="transparent">
-                    <ItemTemplate>
-                        <FluentGrid Spacing="0" Style="width:100%">
-                            <FluentGridItem xs="10">
-                                <div style="width:100%">
-                                    @context.Title
-                                </div>
-                            </FluentGridItem>
-                            <FluentGridItem xs="2" Justify="JustifyContent.FlexEnd">
-                                <FluentButton Class="square-button" IconStart="new Size16.MoreHorizontal()">
-                                </FluentButton>
-                                <FluentButton OnClick="@(() => RemoveTodo(context))" Class="square-button" IconStart="new Size16.Delete()">
-                                </FluentButton>
-                            </FluentGridItem>
-                        </FluentGrid>
-                    </ItemTemplate>
-                </FluentSortableList>
-            </FluentGridItem>
-        </FluentGrid>
+        @if (_loading)
+        {
+            <FluentProgress />
+        }
+        else
+        {
+            <FluentGrid Spacing="1">
+                <FluentGridItem xs="12">
+                    <FluentSortableList Items="_todoList" ListItemBackgroundColor="transparent">
+                        <ItemTemplate>
+                            <FluentGrid Spacing="0" Style="width:100%">
+                                <FluentGridItem xs="10">
+                                    <div style="width:100%">
+                                        @context.Title
+                                    </div>
+                                </FluentGridItem>
+                                <FluentGridItem xs="2" Justify="JustifyContent.FlexEnd">
+                                    <FluentButton Class="square-button" IconStart="new Size16.MoreHorizontal()">
+                                    </FluentButton>
+                                    <FluentButton OnClick="@(() => RemoveTodo(context))" Class="square-button" IconStart="new Size16.Delete()">
+                                    </FluentButton>
+                                </FluentGridItem>
+                            </FluentGrid>
+                        </ItemTemplate>
+                    </FluentSortableList>
+                </FluentGridItem>
+            </FluentGrid>
+        }
     </div>
 </div>
 
 @code
 {
     private string? _newTodoItem { get; set; }
-    private List<TodoItem> _todoList = [new("To do item 1"), new("To do item 2"), new("To do item 3"), new("To do item 4"), new("To do item 5"), new("To do item 6"), new("To do item 7")];
+    private List<TodoItem> _todoList = [];
+    private bool _loading = true;
+    private string? _firestoreError;
 
-    private void AddTodo()
+    protected override async Task OnInitializedAsync()
     {
-        if (!string.IsNullOrWhiteSpace(_newTodoItem))
+        try
         {
-            _todoList.Add(new TodoItem(_newTodoItem));
-            _newTodoItem = string.Empty;
+            _todoList = await Firestore.GetTodosAsync();
+        }
+        catch (Exception ex)
+        {
+            _firestoreError = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
         }
     }
 
-    private void RemoveTodo(TodoItem todo)
+    private async Task AddTodo()
     {
-        _todoList.Remove(todo);
-        StateHasChanged();
+        if (!string.IsNullOrWhiteSpace(_newTodoItem))
+        {
+            var todo = new TodoItem(_newTodoItem) { Order = _todoList.Count };
+            try
+            {
+                todo.Id = await Firestore.AddTodoAsync(todo);
+                _todoList.Add(todo);
+                _newTodoItem = string.Empty;
+                _firestoreError = null;
+            }
+            catch (Exception ex)
+            {
+                _firestoreError = ex.Message;
+            }
+        }
     }
 
-    private void HandleKeyPress(KeyboardEventArgs e)
+    private async Task RemoveTodo(TodoItem todo)
+    {
+        if (todo.Id is not null)
+        {
+            try
+            {
+                await Firestore.DeleteTodoAsync(todo.Id);
+                _todoList.Remove(todo);
+                _firestoreError = null;
+            }
+            catch (Exception ex)
+            {
+                _firestoreError = ex.Message;
+            }
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
         {
-            AddTodo();
+            await AddTodo();
         }
     }
 }

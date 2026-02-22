@@ -13,6 +13,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddFluentUIComponents();
 
 builder.Services.AddScoped<FirebaseAuthService>();
+builder.Services.AddScoped<FirestoreService>();
 builder.Services.AddScoped<FirebaseAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
     sp.GetRequiredService<FirebaseAuthStateProvider>());

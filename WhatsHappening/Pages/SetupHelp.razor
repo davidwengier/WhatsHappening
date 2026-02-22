@@ -61,7 +61,32 @@
             <li>Click <strong>Save</strong></li>
         </ol>
 
-        <h2>Step 5: Enter Your Config</h2>
+        <h2>Step 5: Enable Cloud Firestore</h2>
+        <ol>
+            <li>In the Firebase Console, go to <strong>Firestore Database</strong> (left sidebar under "Build")</li>
+            <li>Click <strong>Create database</strong></li>
+            <li>Choose a location close to you, then click <strong>Next</strong></li>
+            <li>Select <strong>Start in production mode</strong>, then click <strong>Create</strong></li>
+            <li>
+                Once created, go to the <strong>Rules</strong> tab and replace the default rules with:
+                <pre style="background: var(--neutral-layer-4); padding: 1rem; border-radius: 4px; overflow-x: auto;"><code>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}</code></pre>
+            </li>
+            <li>Click <strong>Publish</strong> to save the rules</li>
+        </ol>
+
+        <FluentMessageBar Title="Why these rules?" Intent="MessageIntent.Info" Style="margin-top: 0.5rem; margin-bottom: 1rem;">
+            Since this is your own Firebase project, these rules simply require you to be signed in.
+            All data in the database is yours.
+        </FluentMessageBar>
+
+        <h2>Step 6: Enter Your Config</h2>
         <ol>
             <li>Go to the <FluentAnchor Href="setup">Setup page</FluentAnchor></li>
             <li>
