@@ -101,7 +101,7 @@
     }
     @if (Item.IsGitHubLinked && _expanded)
     {
-        <div style="margin-left:28px;margin-top:4px;margin-bottom:8px;padding:8px 12px;border-left:3px solid var(--accent-fill-rest);font-size:0.85rem;opacity:0.8;position:relative;">
+        <div style="margin-left:28px;margin-top:4px;margin-bottom:8px;padding:8px 12px;border-left:3px solid var(--accent-fill-rest);font-size:0.85rem;opacity:0.8;position:relative;max-height:90px;overflow-y:auto;">
             <FluentButton Style="position:absolute;top:4px;right:4px;width:28px!important;height:28px!important;"
                           Loading="_refreshing"
                           OnClick="Refresh"
@@ -129,7 +129,7 @@
     }
     @if (!Item.IsGitHubLinked && (_expanded || _editing))
     {
-        <div style="margin-left:28px;margin-top:4px;margin-bottom:8px;padding:8px 12px;border-left:3px solid var(--accent-fill-rest);font-size:0.85rem;opacity:0.8;position:relative;">
+        <div style="margin-left:28px;margin-top:4px;margin-bottom:8px;padding:8px 12px;border-left:3px solid var(--accent-fill-rest);font-size:0.85rem;opacity:0.8;position:relative;max-height:90px;overflow-y:auto;">
             @if (!_editing)
             {
                 <FluentButton Style="position:absolute;top:4px;right:4px;width:28px!important;height:28px!important;"
