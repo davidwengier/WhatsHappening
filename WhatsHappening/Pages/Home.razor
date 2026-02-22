@@ -44,6 +44,21 @@
         opacity: 0.5;
     }
 
+    .todo-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .todo-row fluent-checkbox {
+        min-width: 20px;
+    }
+
+    .todo-row .todo-title {
+        flex: 1;
+    }
+
     .borderless-textfield::part(control) {
         background-color: var(--neutral-layer-1);
         border: 0px;
@@ -109,23 +124,15 @@
                     <FluentGridItem xs="12">
                         <FluentSortableList Items="_activeTodos" ListItemBackgroundColor="transparent">
                             <ItemTemplate>
-                                <FluentGrid Spacing="0" Style="width:100%">
-                                    <FluentGridItem xs="1">
-                                        <FluentCheckbox Value="@context.IsComplete"
-                                                        ValueChanged="@((bool _) => ToggleComplete(context))" />
-                                    </FluentGridItem>
-                                    <FluentGridItem xs="9">
-                                        <div style="width:100%;padding-top:4px;">
-                                            @context.Title
-                                        </div>
-                                    </FluentGridItem>
-                                    <FluentGridItem xs="2" Justify="JustifyContent.FlexEnd">
-                                        <FluentButton Class="square-button" IconStart="new Size16.MoreHorizontal()">
-                                        </FluentButton>
-                                        <FluentButton OnClick="@(() => RemoveTodo(context))" Class="square-button" IconStart="new Size16.Delete()">
-                                        </FluentButton>
-                                    </FluentGridItem>
-                                </FluentGrid>
+                                <div class="todo-row">
+                                    <FluentCheckbox Value="@context.IsComplete"
+                                                    ValueChanged="@((bool _) => ToggleComplete(context))" />
+                                    <span class="todo-title">@context.Title</span>
+                                    <FluentButton Class="square-button" IconStart="new Size16.MoreHorizontal()">
+                                    </FluentButton>
+                                    <FluentButton OnClick="@(() => RemoveTodo(context))" Class="square-button" IconStart="new Size16.Delete()">
+                                    </FluentButton>
+                                </div>
                             </ItemTemplate>
                         </FluentSortableList>
                     </FluentGridItem>
@@ -138,21 +145,13 @@
                     <FluentAccordionItem Heading="@($"Completed ({_completedTodos.Count})")" Expanded="_completedExpanded">
                         @foreach (var todo in _completedTodos)
                         {
-                            <FluentGrid Spacing="0" Style="width:100%">
-                                <FluentGridItem xs="1">
-                                    <FluentCheckbox Value="@todo.IsComplete"
-                                                    ValueChanged="@((bool _) => ToggleComplete(todo))" />
-                                </FluentGridItem>
-                                <FluentGridItem xs="9">
-                                    <div class="completed-title" style="width:100%;padding-top:4px;">
-                                        @todo.Title
-                                    </div>
-                                </FluentGridItem>
-                                <FluentGridItem xs="2" Justify="JustifyContent.FlexEnd">
-                                    <FluentButton OnClick="@(() => RemoveTodo(todo))" Class="square-button" IconStart="new Size16.Delete()">
-                                    </FluentButton>
-                                </FluentGridItem>
-                            </FluentGrid>
+                            <div class="todo-row">
+                                <FluentCheckbox Value="@todo.IsComplete"
+                                                ValueChanged="@((bool _) => ToggleComplete(todo))" />
+                                <span class="todo-title completed-title">@todo.Title</span>
+                                <FluentButton OnClick="@(() => RemoveTodo(todo))" Class="square-button" IconStart="new Size16.Delete()">
+                                </FluentButton>
+                            </div>
                         }
                     </FluentAccordionItem>
                 </FluentAccordion>
