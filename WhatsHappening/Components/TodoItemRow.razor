@@ -8,7 +8,7 @@
         {
             <a href="@Item.GitHubUrl" target="_blank" title="@(Item.GitHubType == "pull" ? "Pull Request" : "Issue") #@Item.GitHubNumber" style="flex-shrink:0;line-height:0;">@TypeIcon</a>
         }
-        <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;@(Item.IsComplete ? "text-decoration:line-through;opacity:0.5;" : "")" title="@Item.Title">
+        <div style="@TitleStyle" title="@Item.Title" @onclick="TitleClick">
             @Item.Title
         </div>
         @if (Item.IsGitHubLinked && !Item.IsComplete)
@@ -72,6 +72,17 @@
     private bool _expanded;
     private bool _refreshing;
 
+    private string TitleStyle
+    {
+        get
+        {
+            var s = "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+            if (Item.IsComplete) s += "text-decoration:line-through;opacity:0.5;";
+            if (Item.IsGitHubLinked && !Item.IsComplete) s += "cursor:pointer;";
+            return s;
+        }
+    }
+
     private string StateColor => Item.GitHubState switch
     {
         "open" => "#238636",
@@ -91,6 +102,12 @@
     });
 
     private void ToggleExpand() => _expanded = !_expanded;
+
+    private void TitleClick()
+    {
+        if (Item.IsGitHubLinked && !Item.IsComplete)
+            _expanded = !_expanded;
+    }
 
     // Pick black or white text based on label background luminance
     private static string ContrastColor(string hexColor)
