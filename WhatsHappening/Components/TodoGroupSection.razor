@@ -1,10 +1,28 @@
 @using Microsoft.FluentUI.AspNetCore.Components.Icons.Regular
 
-<div style="margin-bottom:0.5rem;">
-    @if (IsBuiltIn)
-    {
-        <FluentAccordion>
-            <FluentAccordionItem Heading="@Heading" Expanded="_expanded">
+<FluentAccordion Style="margin-bottom:0.5rem;">
+    <FluentAccordionItem Heading="@Heading" Expanded="_expanded">
+        <HeadingTemplate>
+            <div style="display:flex;align-items:center;gap:6px;width:100%;">
+                <span style="font-weight:600;font-size:0.95rem;flex:1;">@Heading</span>
+                @if (OnDeleteGroup.HasDelegate)
+                {
+                    <span @onclick="DeleteGroup" @onclick:stopPropagation="true">
+                        <FluentButton Style="width:26px!important;height:26px!important;flex-shrink:0;"
+                                      Title="Delete group"
+                                      IconStart="new Size16.Delete()">
+                        </FluentButton>
+                    </span>
+                }
+            </div>
+        </HeadingTemplate>
+        <ChildContent>
+            @if (Items.Count == 0)
+            {
+                <div style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;">No items in this group</div>
+            }
+            else
+            {
                 @foreach (var todo in Items)
                 {
                     <TodoItemRow Item="@todo"
@@ -12,58 +30,14 @@
                                  OnDelete="OnDelete"
                                  OnRefresh="OnRefresh" />
                 }
-            </FluentAccordionItem>
-        </FluentAccordion>
-    }
-    else
-    {
-        <div style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 0;" @onclick="ToggleExpand">
-            @if (_expanded)
-            {
-                <FluentIcon Value="new Size16.ChevronDown()" Color="Color.Neutral" Style="flex-shrink:0;" />
             }
-            else
-            {
-                <FluentIcon Value="new Size16.ChevronRight()" Color="Color.Neutral" Style="flex-shrink:0;" />
-            }
-            <span style="font-weight:600;font-size:0.95rem;flex:1;">@Heading</span>
-            <span style="font-size:0.75rem;opacity:0.5;">@Items.Count</span>
-            @if (OnDeleteGroup.HasDelegate)
-            {
-                <span @onclick="DeleteGroup" @onclick:stopPropagation="true">
-                    <FluentButton Style="width:26px!important;height:26px!important;flex-shrink:0;"
-                                  Title="Delete group"
-                                  IconStart="new Size16.Delete()">
-                    </FluentButton>
-                </span>
-            }
-        </div>
-        @if (_expanded)
-        {
-            <div style="margin-left:22px;">
-                @if (Items.Count == 0)
-                {
-                    <div style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;">No items in this group</div>
-                }
-                else
-                {
-                    @foreach (var todo in Items)
-                    {
-                        <TodoItemRow Item="@todo"
-                                     OnToggleComplete="OnToggleComplete"
-                                     OnDelete="OnDelete"
-                                     OnRefresh="OnRefresh" />
-                    }
-                }
-            </div>
-        }
-    }
-</div>
+        </ChildContent>
+    </FluentAccordionItem>
+</FluentAccordion>
 
 @code {
     [Parameter, EditorRequired] public string Heading { get; set; } = string.Empty;
     [Parameter, EditorRequired] public List<TodoItem> Items { get; set; } = [];
-    [Parameter] public bool IsBuiltIn { get; set; }
     [Parameter] public bool StartExpanded { get; set; } = true;
     [Parameter] public EventCallback<TodoItem> OnToggleComplete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDelete { get; set; }
@@ -73,8 +47,6 @@
     private bool _expanded;
 
     protected override void OnInitialized() => _expanded = StartExpanded;
-
-    private void ToggleExpand() => _expanded = !_expanded;
 
     private async Task DeleteGroup()
     {
