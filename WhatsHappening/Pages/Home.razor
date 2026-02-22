@@ -128,8 +128,6 @@
                                     <FluentCheckbox Value="@context.IsComplete"
                                                     ValueChanged="@((bool _) => ToggleComplete(context))" />
                                     <span class="todo-title">@context.Title</span>
-                                    <FluentButton Class="square-button" IconStart="new Size16.MoreHorizontal()">
-                                    </FluentButton>
                                     <FluentButton OnClick="@(() => RemoveTodo(context))" Class="square-button" IconStart="new Size16.Delete()">
                                     </FluentButton>
                                 </div>
