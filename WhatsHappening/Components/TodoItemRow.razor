@@ -214,13 +214,15 @@
         _editing = false;
     }
 
+    private bool CanExpandOrEdit => !Item.IsComplete && !_editing;
+
     private string TitleStyle
     {
         get
         {
             var s = "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
             if (Item.IsComplete) s += "text-decoration:line-through;opacity:0.5;";
-            if (Item.IsExternalLinked && !Item.IsComplete) s += "cursor:pointer;";
+            if (CanExpandOrEdit) s += "cursor:pointer;";
             return s;
         }
     }
@@ -259,8 +261,12 @@
 
     private void TitleClick()
     {
-        if (Item.IsExternalLinked && !Item.IsComplete)
+        if (!CanExpandOrEdit) return;
+
+        if (Item.IsExternalLinked || HasNotes)
             _expanded = !_expanded;
+        else if (!Item.IsGitHubLinked)
+            StartEdit();
     }
 
     // Pick black or white text based on label background luminance
