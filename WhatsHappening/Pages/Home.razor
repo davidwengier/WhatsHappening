@@ -93,16 +93,30 @@
                          Appearance="FluentInputAppearance.Filled" />
         @if (_groups.Count > 0)
         {
-            <FluentSelect TOption="string"
-                          Value="@_selectedGroupId"
-                          ValueChanged="@((string v) => _selectedGroupId = v)"
-                          Style="min-width:120px;max-width:160px;">
-                <FluentOption Value="">Ungrouped</FluentOption>
-                @foreach (var g in _groups.OrderBy(g => g.Order))
+            <div style="position:relative;flex-shrink:0;">
+                <FluentButton OnClick="@(() => _showGroupMenu = !_showGroupMenu)"
+                              Title="@($"Group: {SelectedGroupName}")"
+                              Style="width:30px!important;height:30px!important;"
+                              IconStart="new Size16.FolderOpen()">
+                </FluentButton>
+                @if (_showGroupMenu)
                 {
-                    <FluentOption Value="@g.Id">@g.Name</FluentOption>
+                    <div style="position:absolute;top:100%;right:0;z-index:100;min-width:180px;margin-top:4px;">
+                        <FluentCard Style="padding:4px 0;box-shadow:0 4px 12px rgba(0,0,0,0.25);">
+                            <FluentButton Appearance="@(_selectedGroupId == "" ? Appearance.Accent : Appearance.Stealth)"
+                                          OnClick="@(() => { _selectedGroupId = ""; _showGroupMenu = false; })"
+                                          Style="width:100%;justify-content:flex-start;">Ungrouped</FluentButton>
+                            @foreach (var g in _groups.OrderBy(g => g.Order))
+                            {
+                                var gId = g.Id!;
+                                <FluentButton Appearance="@(_selectedGroupId == gId ? Appearance.Accent : Appearance.Stealth)"
+                                              OnClick="@(() => { _selectedGroupId = gId; _showGroupMenu = false; })"
+                                              Style="width:100%;justify-content:flex-start;">@g.Name</FluentButton>
+                            }
+                        </FluentCard>
+                    </div>
                 }
-            </FluentSelect>
+            </div>
         }
         <FluentButton @onclick="AddTodo" Title="Add todo" AriaLabel="Add todo"
                       Style="width:30px!important;height:30px!important;flex-shrink:0;"
@@ -229,10 +243,13 @@
     private bool _loading = true;
     private string? _firestoreError;
     private bool _addingGroup;
+    private bool _showGroupMenu;
     private string? _newGroupName;
     private FluentTextField? _groupTextField;
 
-    private string InputPlaceholder => _selectedGroupId == "" ? "Enter a Todo" : $"Add to {_groups.FirstOrDefault(g => g.Id == _selectedGroupId)?.Name ?? "group"}";
+    private string InputPlaceholder => _selectedGroupId == "" ? "Enter a Todo" : $"Add to {SelectedGroupName}";
+
+    private string SelectedGroupName => _selectedGroupId == "" ? "Ungrouped" : _groups.FirstOrDefault(g => g.Id == _selectedGroupId)?.Name ?? "group";
 
     private bool _focusGroupInput;
 
