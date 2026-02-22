@@ -1,5 +1,6 @@
 let app = null;
 let auth = null;
+let db = null;
 
 window.firebaseInterop = {
     hasConfig() {
@@ -25,8 +26,42 @@ window.firebaseInterop = {
         if (!app) {
             app = firebase.initializeApp(config);
             auth = firebase.auth();
+            db = firebase.firestore();
         }
         return true;
+    },
+
+    // Firestore operations
+
+    async getTodos() {
+        const snapshot = await db.collection("todos").orderBy("order").get();
+        return snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
+    },
+
+    async addTodo(todo) {
+        const docRef = await db.collection("todos").add(todo);
+        return docRef.id;
+    },
+
+    async updateTodo(docId, data) {
+        await db.collection("todos").doc(docId).update(data);
+    },
+
+    async deleteTodo(docId) {
+        await db.collection("todos").doc(docId).delete();
+    },
+
+    async reorderTodos(updates) {
+        const batch = db.batch();
+        for (const u of updates) {
+            batch.update(db.collection("todos").doc(u.id), {
+                order: u.order,
+            });
+        }
+        await batch.commit();
     },
 
     async signInWithGitHub() {
