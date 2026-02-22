@@ -16,11 +16,7 @@
     </p>
     <div style="font-size:0.82rem;opacity:0.8;margin-bottom:0.75rem;">
         <strong>Quick method</strong> — run this from the command line:
-        <div style="background:var(--neutral-layer-4);padding:6px 10px;border-radius:4px;margin:0.35rem 0;font-family:monospace;font-size:0.75rem;word-break:break-all;white-space:pre-wrap;">dotnet tool run pat-generator --scopes code_write --organizations @(_org ?? "YOUR_ORG") --expires-in 30</div>
-        <details style="margin-top:0.5rem;">
-            <summary style="cursor:pointer;">First time? Install the tool first</summary>
-            <div style="background:var(--neutral-layer-4);padding:6px 10px;border-radius:4px;margin:0.35rem 0;font-family:monospace;font-size:0.75rem;word-break:break-all;white-space:pre-wrap;">dotnet tool install --global Microsoft.DncEng.PatGeneratorTool --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json --prerelease</div>
-        </details>
+        <div style="background:var(--neutral-layer-4);padding:6px 10px;border-radius:4px;margin:0.35rem 0;font-family:monospace;font-size:0.75rem;word-break:break-all;white-space:pre-wrap;">dnx Microsoft.DncEng.PatGeneratorTool --scopes code_write --organizations @(_org ?? "YOUR_ORG") --expires-in 30 --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json --prerelease</div>
         <details style="margin-top:0.5rem;">
             <summary style="cursor:pointer;">Or create one manually</summary>
             <ol style="margin:0.25rem 0;padding-left:1.25rem;">
