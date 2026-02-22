@@ -39,17 +39,18 @@ public sealed partial class GitHubService
 
     public async Task<(string Title, string State)?> FetchIssuePrDetailsAsync(string owner, string repo, int number, string type)
     {
-        var token = await _auth.GetGitHubTokenAsync();
-        if (token is null) return null;
-
         var endpoint = type == "pull"
             ? $"https://api.github.com/repos/{owner}/{repo}/pulls/{number}"
             : $"https://api.github.com/repos/{owner}/{repo}/issues/{number}";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         request.Headers.UserAgent.ParseAdd("WhatsHappening/1.0");
         request.Headers.Accept.ParseAdd("application/vnd.github+json");
+
+        // Add token if available (needed for private repos, helps with rate limits)
+        var token = await _auth.GetGitHubTokenAsync();
+        if (token is not null)
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         using var response = await _http.SendAsync(request);
         if (!response.IsSuccessStatusCode) return null;
