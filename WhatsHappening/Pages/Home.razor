@@ -147,7 +147,8 @@
             <div class="add-group-row">
                 @if (_addingGroup)
                 {
-                    <FluentTextField @bind-Value="_newGroupName"
+                    <FluentTextField @ref="_groupTextField"
+                                     @bind-Value="_newGroupName"
                                      Immediate="true"
                                      @onkeypress="HandleGroupKeyPress"
                                      Placeholder="Group name"
@@ -165,7 +166,7 @@
                 else
                 {
                     <FluentButton Appearance="Appearance.Lightweight"
-                                  OnClick="@(() => _addingGroup = true)"
+                                  OnClick="@(() => { _addingGroup = true; _focusGroupInput = true; })"
                                   IconStart="new Size16.Add()"
                                   Style="font-size:0.85rem;opacity:0.6;">
                         Add group
@@ -198,8 +199,11 @@
     private string? _firestoreError;
     private bool _addingGroup;
     private string? _newGroupName;
+    private FluentTextField? _groupTextField;
 
     private string InputPlaceholder => _selectedGroupId == "" ? "Enter a Todo" : $"Add to {_groups.FirstOrDefault(g => g.Id == _selectedGroupId)?.Name ?? "group"}";
+
+    private bool _focusGroupInput;
 
     private List<TodoItem> UngroupedActive => _todoList
         .Where(t => !t.IsComplete && string.IsNullOrEmpty(t.GroupId))
@@ -231,6 +235,15 @@
         finally
         {
             _loading = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusGroupInput && _groupTextField is not null)
+        {
+            _focusGroupInput = false;
+            _groupTextField.FocusAsync();
         }
     }
 
