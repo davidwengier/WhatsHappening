@@ -11,14 +11,6 @@
         <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;@(Item.IsComplete ? "text-decoration:line-through;opacity:0.5;" : "")" title="@Item.Title">
             @Item.Title
         </div>
-        @if (Item.IsGitHubLinked)
-        {
-            <a href="@Item.GitHubUrl" target="_blank" style="flex-shrink:0;font-size:0.75rem;white-space:nowrap;color:var(--accent-fill-rest);text-decoration:none;opacity:0.7;">@Item.GitHubOwner/@Item.GitHubRepo#@Item.GitHubNumber</a>
-            @if (Item.GitHubState is not null && !Item.IsComplete)
-            {
-                <span style="display:inline-block;font-size:0.65rem;padding:1px 6px;border-radius:10px;font-weight:600;background:@StateColor;color:white;flex-shrink:0;">@Item.GitHubState</span>
-            }
-        }
         @if (Item.IsGitHubLinked && !Item.IsComplete)
         {
             <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
@@ -31,6 +23,16 @@
                       IconStart="new Size16.Delete()">
         </FluentButton>
     </div>
+    @if (Item.IsGitHubLinked)
+    {
+        <div style="display:flex;align-items:center;gap:6px;margin-left:48px;font-size:0.75rem;opacity:@(Item.IsComplete ? "0.4" : "0.7");">
+            <a href="@Item.GitHubUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@Item.GitHubOwner/@Item.GitHubRepo#@Item.GitHubNumber</a>
+            @if (Item.GitHubState is not null && !Item.IsComplete)
+            {
+                <span style="font-size:0.65rem;padding:1px 6px;border-radius:10px;font-weight:600;background:@StateColor;color:white;">@Item.GitHubState</span>
+            }
+        </div>
+    }
     @if (Item.IsGitHubLinked && _expanded)
     {
         <div style="margin-left:28px;margin-top:4px;margin-bottom:8px;padding:8px 12px;border-left:3px solid var(--accent-fill-rest);font-size:0.85rem;opacity:0.8;position:relative;">
