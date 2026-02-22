@@ -8,7 +8,7 @@
         {
             <a href="@Item.GitHubUrl" target="_blank" title="@(Item.GitHubType == "pull" ? "Pull Request" : "Issue") #@Item.GitHubNumber" style="flex-shrink:0;line-height:0;">@TypeIcon</a>
         }
-        <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;@(Item.IsComplete ? "text-decoration:line-through;opacity:0.5;" : "")">
+        <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;@(Item.IsComplete ? "text-decoration:line-through;opacity:0.5;" : "")" title="@Item.Title">
             @Item.Title
         </div>
         @if (Item.IsGitHubLinked)
