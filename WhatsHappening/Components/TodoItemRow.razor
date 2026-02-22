@@ -21,7 +21,8 @@
         }
         @if (_editing)
         {
-            <FluentTextField @bind-Value="_editTitle" Immediate="true"
+            <FluentTextField @ref="_titleField" @bind-Value="_editTitle" Immediate="true"
+                             @onkeypress="HandleEditKeyPress"
                              Style="flex:1;min-width:0;"
                              Appearance="FluentInputAppearance.Filled" />
         }
@@ -158,9 +159,11 @@
     [Parameter] public EventCallback<TodoItem> OnDragStart { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }
 
+    private FluentTextField? _titleField;
     private bool _expanded;
     private bool _editing;
     private bool _refreshing;
+    private bool _focusTitleField;
     private int _dragCounter;
     private string _editTitle = string.Empty;
     private string? _editNotes;
@@ -174,12 +177,28 @@
     private void DragLeave() => _dragCounter--;
     private async Task HandleDrop() { _dragCounter = 0; await OnDropOnItem.InvokeAsync(Item); }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusTitleField && _titleField is not null)
+        {
+            _focusTitleField = false;
+            _titleField.FocusAsync();
+        }
+    }
+
     private void StartEdit()
     {
         _editTitle = Item.Title;
         _editNotes = Item.Notes;
         _editing = true;
         _expanded = false;
+        _focusTitleField = true;
+    }
+
+    private async Task HandleEditKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await SaveEdit();
     }
 
     private async Task SaveEdit()
