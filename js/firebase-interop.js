@@ -34,11 +34,15 @@ window.firebaseInterop = {
     // Firestore operations
 
     async getTodos() {
-        const snapshot = await db.collection("todos").orderBy("order").get();
-        return snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-        }));
+        const timeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(
+                "Firestore request timed out. Is Cloud Firestore enabled in your Firebase project?"
+            )), 10000)
+        );
+        const query = db.collection("todos").orderBy("order").get().then((snapshot) =>
+            snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+        return Promise.race([query, timeout]);
     },
 
     async addTodo(todo) {
