@@ -1,34 +1,49 @@
 @using Microsoft.FluentUI.AspNetCore.Components.Icons.Regular
 
-<FluentAccordion Style="margin-bottom:0.5rem;">
-    <FluentAccordionItem Heading="@Heading" Expanded="_expanded">
-        <ChildContent>
-            @if (Items.Count == 0)
-            {
-                <div style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;">
-                    No items in this group
-                    @if (OnDeleteGroup.HasDelegate)
-                    {
-                        <span> · </span><a @onclick="DeleteGroup" @onclick:preventDefault style="cursor:pointer;color:var(--accent-fill-rest);text-decoration:none;">Delete group</a>
-                    }
-                </div>
-            }
-            else
-            {
-                @foreach (var todo in Items)
+@if (string.IsNullOrEmpty(Heading))
+{
+    <FluentCard Style="margin-bottom:0.5rem;padding:0.5rem;">
+        @foreach (var todo in Items)
+        {
+            <TodoItemRow Item="@todo"
+                         OnToggleComplete="OnToggleComplete"
+                         OnDelete="OnDelete"
+                         OnRefresh="OnRefresh" />
+        }
+    </FluentCard>
+}
+else
+{
+    <FluentAccordion Style="margin-bottom:0.5rem;">
+        <FluentAccordionItem Heading="@Heading" Expanded="_expanded">
+            <ChildContent>
+                @if (Items.Count == 0)
                 {
-                    <TodoItemRow Item="@todo"
-                                 OnToggleComplete="OnToggleComplete"
-                                 OnDelete="OnDelete"
-                                 OnRefresh="OnRefresh" />
+                    <div style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;">
+                        No items in this group
+                        @if (OnDeleteGroup.HasDelegate)
+                        {
+                            <span> · </span><a @onclick="DeleteGroup" @onclick:preventDefault style="cursor:pointer;color:var(--accent-fill-rest);text-decoration:none;">Delete group</a>
+                        }
+                    </div>
                 }
-            }
-        </ChildContent>
-    </FluentAccordionItem>
-</FluentAccordion>
+                else
+                {
+                    @foreach (var todo in Items)
+                    {
+                        <TodoItemRow Item="@todo"
+                                     OnToggleComplete="OnToggleComplete"
+                                     OnDelete="OnDelete"
+                                     OnRefresh="OnRefresh" />
+                    }
+                }
+            </ChildContent>
+        </FluentAccordionItem>
+    </FluentAccordion>
+}
 
 @code {
-    [Parameter, EditorRequired] public string Heading { get; set; } = string.Empty;
+    [Parameter] public string? Heading { get; set; }
     [Parameter, EditorRequired] public List<TodoItem> Items { get; set; } = [];
     [Parameter] public bool StartExpanded { get; set; } = true;
     [Parameter] public EventCallback<TodoItem> OnToggleComplete { get; set; }

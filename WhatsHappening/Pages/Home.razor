@@ -104,8 +104,7 @@
             @* Ungrouped active items *@
             @if (UngroupedActive.Count > 0)
             {
-                <TodoGroupSection Heading="@($"Tasks ({UngroupedActive.Count})")"
-                                  Items="UngroupedActive"
+                <TodoGroupSection Items="UngroupedActive"
                                   OnToggleComplete="ToggleComplete"
                                   OnDelete="RemoveTodo"
                                   OnRefresh="RefreshGitHub" />
