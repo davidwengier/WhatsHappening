@@ -1,6 +1,6 @@
 @using Microsoft.FluentUI.AspNetCore.Components.Icons.Regular
 
-<div draggable="@(ShowDragHandle ? "true" : "false")"
+<div draggable="@(ShowDragHandle && !_editing ? "true" : "false")"
      @ondragstart="StartDrag"
      @ondragover="@(() => { })" @ondragover:preventDefault="ShowDragHandle"
      @ondrop="HandleDrop" @ondrop:preventDefault
@@ -19,20 +19,68 @@
         {
             <a href="@Item.GitHubUrl" target="_blank" title="@(Item.GitHubType == "pull" ? "Pull Request" : "Issue") #@Item.GitHubNumber" style="flex-shrink:0;line-height:0;">@TypeIcon</a>
         }
-        <div style="@TitleStyle" title="@Item.Title" @onclick="TitleClick">
-            @Item.Title
-        </div>
-        @if (Item.IsExternalLinked && !Item.IsComplete)
+        @if (_editing)
+        {
+            <FluentTextField @bind-Value="_editTitle" Immediate="true"
+                             Style="flex:1;min-width:0;"
+                             Appearance="FluentInputAppearance.Filled" />
+        }
+        else
+        {
+            <div style="@TitleStyle" title="@Item.Title" @onclick="TitleClick">
+                @Item.Title
+            </div>
+        }
+        @if (_editing)
+        {
+            <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
+                          OnClick="SaveEdit" Title="Save"
+                          IconStart="new Size16.Checkmark()">
+            </FluentButton>
+            <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
+                          OnClick="CancelEdit" Title="Cancel"
+                          IconStart="new Size16.Dismiss()">
+            </FluentButton>
+        }
+        else if (Item.IsExternalLinked && !Item.IsComplete)
         {
             <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
                           OnClick="@(() => ToggleExpand())"
                           IconStart="@(_expanded ? new Size16.ChevronUp() : new Size16.ChevronDown())">
             </FluentButton>
+            <FluentButton OnClick="@(() => OnDelete.InvokeAsync(Item))"
+                          Style="width:30px!important;height:30px!important;flex-shrink:0;"
+                          IconStart="new Size16.Delete()">
+            </FluentButton>
         }
-        <FluentButton OnClick="@(() => OnDelete.InvokeAsync(Item))"
-                      Style="width:30px!important;height:30px!important;flex-shrink:0;"
-                      IconStart="new Size16.Delete()">
-        </FluentButton>
+        else if (!Item.IsGitHubLinked && !Item.IsComplete)
+        {
+            @if (HasNotes)
+            {
+                <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
+                              OnClick="@(() => ToggleExpand())"
+                              IconStart="@(_expanded ? new Size16.ChevronUp() : new Size16.ChevronDown())">
+                </FluentButton>
+            }
+            else
+            {
+                <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
+                              OnClick="StartEdit" Title="Edit"
+                              IconStart="new Size16.Edit()">
+                </FluentButton>
+            }
+            <FluentButton OnClick="@(() => OnDelete.InvokeAsync(Item))"
+                          Style="width:30px!important;height:30px!important;flex-shrink:0;"
+                          IconStart="new Size16.Delete()">
+            </FluentButton>
+        }
+        else
+        {
+            <FluentButton OnClick="@(() => OnDelete.InvokeAsync(Item))"
+                          Style="width:30px!important;height:30px!important;flex-shrink:0;"
+                          IconStart="new Size16.Delete()">
+            </FluentButton>
+        }
     </div>
     @if (Item.IsGitHubLinked)
     {
@@ -78,6 +126,26 @@
             }
         </div>
     }
+    @if (!Item.IsGitHubLinked && (_expanded || _editing))
+    {
+        <div style="margin-left:28px;margin-top:4px;margin-bottom:8px;padding:8px 12px;border-left:3px solid var(--accent-fill-rest);font-size:0.85rem;opacity:0.8;position:relative;">
+            @if (!_editing)
+            {
+                <FluentButton Style="position:absolute;top:4px;right:4px;width:28px!important;height:28px!important;"
+                              OnClick="StartEdit" Title="Edit"
+                              IconStart="new Size16.Edit()">
+                </FluentButton>
+                <div style="margin-right:36px;white-space:pre-wrap;word-break:break-word;line-height:1.4;">@Item.Notes</div>
+            }
+            else
+            {
+                <FluentTextArea @bind-Value="_editNotes" Rows="4"
+                                Placeholder="Add notes..."
+                                Style="width:100%;"
+                                Appearance="FluentInputAppearance.Filled" />
+            }
+        </div>
+    }
 </div>
 
 @code {
@@ -85,13 +153,19 @@
     [Parameter] public EventCallback<TodoItem> OnToggleComplete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDelete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnRefresh { get; set; }
+    [Parameter] public EventCallback<TodoItem> OnSave { get; set; }
     [Parameter] public bool ShowDragHandle { get; set; } = true;
     [Parameter] public EventCallback<TodoItem> OnDragStart { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }
 
     private bool _expanded;
+    private bool _editing;
     private bool _refreshing;
     private int _dragCounter;
+    private string _editTitle = string.Empty;
+    private string? _editNotes;
+
+    private bool HasNotes => !string.IsNullOrWhiteSpace(Item.Notes);
 
     private string DropIndicator => _dragCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "";
 
@@ -99,6 +173,27 @@
     private void DragEnter() => _dragCounter++;
     private void DragLeave() => _dragCounter--;
     private async Task HandleDrop() { _dragCounter = 0; await OnDropOnItem.InvokeAsync(Item); }
+
+    private void StartEdit()
+    {
+        _editTitle = Item.Title;
+        _editNotes = Item.Notes;
+        _editing = true;
+        _expanded = false;
+    }
+
+    private async Task SaveEdit()
+    {
+        Item.Title = _editTitle;
+        Item.Notes = string.IsNullOrWhiteSpace(_editNotes) ? null : _editNotes;
+        _editing = false;
+        await OnSave.InvokeAsync(Item);
+    }
+
+    private void CancelEdit()
+    {
+        _editing = false;
+    }
 
     private string TitleStyle
     {

@@ -19,6 +19,9 @@ public sealed class TodoItem
     public string? GitHubBody { get; set; }
     public List<GitHubLabel>? GitHubLabels { get; set; }
 
+    // Notes (for non-GitHub items)
+    public string? Notes { get; set; }
+
     // Linked PR (for issues only)
     public int? LinkedPrNumber { get; set; }
     public string? LinkedPrRepo { get; set; }

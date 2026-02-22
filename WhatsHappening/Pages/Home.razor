@@ -170,6 +170,7 @@
                                       OnToggleComplete="ToggleComplete"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
+                                      OnSave="SaveTodo"
                                       OnDragStart="HandleDragStart"
                                       OnDropOnItem="HandleDropOnItem"
                                       OnDropOnGroup="HandleDropOnGroup" />
@@ -185,6 +186,7 @@
                                       OnToggleComplete="ToggleComplete"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
+                                      OnSave="SaveTodo"
                                       OnDeleteGroup="@(() => DeleteGroup(group))"
                                       OnDragStart="HandleDragStart"
                                       OnDropOnItem="HandleDropOnItem"
@@ -234,7 +236,8 @@
                                   ShowDragHandles="false"
                                   OnToggleComplete="ToggleComplete"
                                   OnDelete="RemoveTodo"
-                                  OnRefresh="RefreshGitHub" />
+                                  OnRefresh="RefreshGitHub"
+                                  OnSave="SaveTodo" />
             }
         </div>
     }
@@ -522,6 +525,20 @@
         {
             todo.IsComplete = !todo.IsComplete;
             todo.CompletedAt = todo.IsComplete ? todo.CompletedAt : null;
+            _firestoreError = ex.Message;
+        }
+    }
+
+    private async Task SaveTodo(TodoItem todo)
+    {
+        if (todo.Id is null) return;
+        try
+        {
+            await Firestore.UpdateTodoAsync(todo.Id, new { title = todo.Title, notes = todo.Notes });
+            _firestoreError = null;
+        }
+        catch (Exception ex)
+        {
             _firestoreError = ex.Message;
         }
     }
