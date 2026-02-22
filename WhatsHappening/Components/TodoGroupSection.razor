@@ -2,24 +2,16 @@
 
 <FluentAccordion Style="margin-bottom:0.5rem;">
     <FluentAccordionItem Heading="@Heading" Expanded="_expanded">
-        <HeadingTemplate>
-            <div style="display:flex;align-items:center;gap:6px;width:100%;">
-                <span style="font-weight:600;font-size:0.95rem;flex:1;">@Heading</span>
-                @if (OnDeleteGroup.HasDelegate)
-                {
-                    <span @onclick="DeleteGroup" @onclick:stopPropagation="true">
-                        <FluentButton Style="width:26px!important;height:26px!important;flex-shrink:0;"
-                                      Title="Delete group"
-                                      IconStart="new Size16.Delete()">
-                        </FluentButton>
-                    </span>
-                }
-            </div>
-        </HeadingTemplate>
         <ChildContent>
             @if (Items.Count == 0)
             {
-                <div style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;">No items in this group</div>
+                <div style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;">
+                    No items in this group
+                    @if (OnDeleteGroup.HasDelegate)
+                    {
+                        <span> · </span><a @onclick="DeleteGroup" @onclick:preventDefault style="cursor:pointer;color:var(--accent-fill-rest);text-decoration:none;">Delete group</a>
+                    }
+                </div>
             }
             else
             {
