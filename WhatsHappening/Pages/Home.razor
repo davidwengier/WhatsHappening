@@ -104,13 +104,11 @@
             @* Ungrouped active items *@
             @if (UngroupedActive.Count > 0)
             {
-                @foreach (var todo in UngroupedActive)
-                {
-                    <TodoItemRow Item="@todo"
-                                 OnToggleComplete="ToggleComplete"
-                                 OnDelete="RemoveTodo"
-                                 OnRefresh="RefreshGitHub" />
-                }
+                <TodoGroupSection Heading="@($"Tasks ({UngroupedActive.Count})")"
+                                  Items="UngroupedActive"
+                                  OnToggleComplete="ToggleComplete"
+                                  OnDelete="RemoveTodo"
+                                  OnRefresh="RefreshGitHub" />
             }
 
             @* User-created groups *@
