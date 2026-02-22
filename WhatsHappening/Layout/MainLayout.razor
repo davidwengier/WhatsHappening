@@ -6,7 +6,7 @@
     <FluentHeader>
         <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
             <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="gap:8px;">
-                <a href="" style="color: inherit; text-decoration: none; font-weight: bold; white-space: nowrap;">What's Happening</a>
+                <a href="" style="color: inherit; text-decoration: none; font-weight: bold; white-space: nowrap; font-size: 1.1rem;">What's Happening</a>
                 <UpdateChecker />
             </FluentStack>
             <AuthorizeView>
@@ -17,11 +17,11 @@
                             <FluentPersona Name="@context.User.Identity?.Name"
                                            ImageSize="24px"
                                            Image="@photoUrl"
-                                           Style="--neutral-foreground-rest: white; color: white;" />
+                                           Style="--neutral-foreground-rest: white; color: white; font-weight: normal;" />
                         }
                         else
                         {
-                            <span style="font-size: 0.85rem; white-space: nowrap; color: white;">@context.User.Identity?.Name</span>
+                            <span style="font-size: 0.85rem; white-space: nowrap; color: white; font-weight: normal;">@context.User.Identity?.Name</span>
                         }
                         <FluentButton Appearance="Appearance.Stealth"
                                       OnClick="@(() => Navigation.NavigateTo("setup"))"
