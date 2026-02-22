@@ -176,6 +176,7 @@
                     todo.Title = details.Value.Title;
                     todo.GitHubState = details.Value.State;
                     todo.GitHubBody = details.Value.Body;
+                    todo.GitHubLabels = details.Value.Labels;
                 }
                 else
                 {
@@ -207,8 +208,15 @@
             todo.Title = details.Value.Title;
             todo.GitHubState = details.Value.State;
             todo.GitHubBody = details.Value.Body;
+            todo.GitHubLabels = details.Value.Labels;
             if (todo.Id is not null)
-                await Firestore.UpdateTodoAsync(todo.Id, new { title = todo.Title, gitHubState = todo.GitHubState, gitHubBody = todo.GitHubBody });
+                await Firestore.UpdateTodoAsync(todo.Id, new
+                {
+                    title = todo.Title,
+                    gitHubState = todo.GitHubState,
+                    gitHubBody = todo.GitHubBody,
+                    gitHubLabels = todo.GitHubLabels?.Select(l => new { name = l.Name, color = l.Color }).ToArray()
+                });
         }
     }
 

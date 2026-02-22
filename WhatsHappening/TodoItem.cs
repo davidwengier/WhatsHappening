@@ -16,10 +16,17 @@ public sealed class TodoItem
     public string? GitHubType { get; set; } // "issue" or "pull"
     public string? GitHubState { get; set; }
     public string? GitHubBody { get; set; }
+    public List<GitHubLabel>? GitHubLabels { get; set; }
 
     public bool IsGitHubLinked => GitHubUrl is not null;
 
     public TodoItem() => Title = string.Empty;
 
     public TodoItem(string title) => Title = title;
+}
+
+public sealed class GitHubLabel
+{
+    public string Name { get; set; } = string.Empty;
+    public string Color { get; set; } = "636c76"; // hex without #
 }

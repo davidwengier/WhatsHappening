@@ -28,7 +28,8 @@ public sealed class FirestoreService
             gitHubNumber = item.GitHubNumber,
             gitHubType = item.GitHubType,
             gitHubState = item.GitHubState,
-            gitHubBody = item.GitHubBody
+            gitHubBody = item.GitHubBody,
+            gitHubLabels = item.GitHubLabels?.Select(l => new { name = l.Name, color = l.Color }).ToArray()
         };
         return await _js.InvokeAsync<string>("firebaseInterop.addTodo", data);
     }

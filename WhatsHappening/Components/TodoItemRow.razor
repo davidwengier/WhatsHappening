@@ -39,6 +39,15 @@
                           Title="Refresh from GitHub"
                           IconStart="new Size16.ArrowSync()">
             </FluentButton>
+            @if (Item.GitHubLabels is { Count: > 0 })
+            {
+                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;margin-right:36px;">
+                    @foreach (var label in Item.GitHubLabels)
+                    {
+                        <span style="display:inline-block;font-size:0.7rem;padding:1px 8px;border-radius:10px;font-weight:600;background:#@(label.Color);color:@ContrastColor(label.Color);">@label.Name</span>
+                    }
+                </div>
+            }
             @if (!string.IsNullOrEmpty(Item.GitHubBody))
             {
                 <div style="margin-right:36px;white-space:pre-wrap;word-break:break-word;line-height:1.4;">@Item.GitHubBody</div>
@@ -69,6 +78,17 @@
     };
 
     private void ToggleExpand() => _expanded = !_expanded;
+
+    // Pick black or white text based on label background luminance
+    private static string ContrastColor(string hexColor)
+    {
+        if (hexColor.Length < 6) return "#fff";
+        var r = Convert.ToInt32(hexColor[..2], 16);
+        var g = Convert.ToInt32(hexColor[2..4], 16);
+        var b = Convert.ToInt32(hexColor[4..6], 16);
+        var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance > 0.5 ? "#000" : "#fff";
+    }
 
     private async Task Refresh()
     {
