@@ -166,7 +166,7 @@
     private string? _newTodoItem { get; set; }
     private List<TodoItem> _todoList = [];
     private List<TodoItem> _activeTodos => _todoList.Where(t => !t.IsComplete).OrderBy(t => t.Order).ToList();
-    private List<TodoItem> _completedTodos => _todoList.Where(t => t.IsComplete).OrderBy(t => t.Order).ToList();
+    private List<TodoItem> _completedTodos => _todoList.Where(t => t.IsComplete).OrderByDescending(t => t.CompletedAt ?? 0).ToList();
     private bool _loading = true;
     private bool _completedExpanded = false;
     private string? _firestoreError;
@@ -210,14 +210,16 @@
     {
         if (todo.Id is null) return;
         todo.IsComplete = !todo.IsComplete;
+        todo.CompletedAt = todo.IsComplete ? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() : null;
         try
         {
-            await Firestore.UpdateTodoAsync(todo.Id, new { isComplete = todo.IsComplete });
+            await Firestore.UpdateTodoAsync(todo.Id, new { isComplete = todo.IsComplete, completedAt = todo.CompletedAt });
             _firestoreError = null;
         }
         catch (Exception ex)
         {
             todo.IsComplete = !todo.IsComplete;
+            todo.CompletedAt = todo.IsComplete ? todo.CompletedAt : null;
             _firestoreError = ex.Message;
         }
     }
