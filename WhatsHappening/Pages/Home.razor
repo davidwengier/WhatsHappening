@@ -175,6 +175,7 @@
                 {
                     todo.Title = details.Value.Title;
                     todo.GitHubState = details.Value.State;
+                    todo.GitHubBody = details.Value.Body;
                 }
                 else
                 {
@@ -205,8 +206,9 @@
         {
             todo.Title = details.Value.Title;
             todo.GitHubState = details.Value.State;
+            todo.GitHubBody = details.Value.Body;
             if (todo.Id is not null)
-                await Firestore.UpdateTodoAsync(todo.Id, new { title = todo.Title, gitHubState = todo.GitHubState });
+                await Firestore.UpdateTodoAsync(todo.Id, new { title = todo.Title, gitHubState = todo.GitHubState, gitHubBody = todo.GitHubBody });
         }
     }
 

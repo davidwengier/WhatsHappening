@@ -15,6 +15,7 @@ public sealed class TodoItem
     public int? GitHubNumber { get; set; }
     public string? GitHubType { get; set; } // "issue" or "pull"
     public string? GitHubState { get; set; }
+    public string? GitHubBody { get; set; }
 
     public bool IsGitHubLinked => GitHubUrl is not null;
 

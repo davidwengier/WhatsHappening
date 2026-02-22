@@ -27,7 +27,8 @@ public sealed class FirestoreService
             gitHubRepo = item.GitHubRepo,
             gitHubNumber = item.GitHubNumber,
             gitHubType = item.GitHubType,
-            gitHubState = item.GitHubState
+            gitHubState = item.GitHubState,
+            gitHubBody = item.GitHubBody
         };
         return await _js.InvokeAsync<string>("firebaseInterop.addTodo", data);
     }

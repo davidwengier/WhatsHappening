@@ -37,7 +37,7 @@ public sealed partial class GitHubService
         return true;
     }
 
-    public async Task<(string Title, string State)?> FetchIssuePrDetailsAsync(string owner, string repo, int number, string type)
+    public async Task<(string Title, string State, string? Body)?> FetchIssuePrDetailsAsync(string owner, string repo, int number, string type)
     {
         var endpoint = type == "pull"
             ? $"https://api.github.com/repos/{owner}/{repo}/pulls/{number}"
@@ -59,7 +59,11 @@ public sealed partial class GitHubService
         var root = doc.RootElement;
         var title = root.GetProperty("title").GetString() ?? "Untitled";
         var state = root.GetProperty("state").GetString() ?? "unknown";
-        return (title, state);
+        var body = root.TryGetProperty("body", out var bodyEl) ? bodyEl.GetString() : null;
+        // Truncate body for storage/display
+        if (body is not null && body.Length > 500)
+            body = body[..500] + "…";
+        return (title, state, body);
     }
 
     [GeneratedRegex(@"https?://github\.com/(?<owner>[^/]+)/(?<repo>[^/]+)/(?<type>issues|pull)/(?<number>\d+)", RegexOptions.IgnoreCase)]
