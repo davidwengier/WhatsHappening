@@ -2,6 +2,8 @@
 
 var url = args.Length > 0 ? args[0] : "https://wengier.com/WhatsHappening/";
 var output = args.Length > 1 ? args[1] : "screenshot.png";
+var viewportWidth = args.Length > 2 ? int.Parse(args[2]) : 1280;
+var viewportHeight = args.Length > 3 ? int.Parse(args[3]) : 800;
 
 var edgeUserData = Path.Combine(
     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -28,7 +30,7 @@ await using var context = await playwright.Chromium.LaunchPersistentContextAsync
 {
     ExecutablePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
     Headless = true,
-    ViewportSize = new() { Width = 1280, Height = 800 },
+    ViewportSize = new() { Width = viewportWidth, Height = viewportHeight },
     Args = ["--disable-extensions"],
 });
 
