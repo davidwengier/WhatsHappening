@@ -8,6 +8,16 @@ public sealed class TodoItem
     public int Order { get; set; }
     public long? CompletedAt { get; set; }
 
+    // GitHub issue/PR link
+    public string? GitHubUrl { get; set; }
+    public string? GitHubOwner { get; set; }
+    public string? GitHubRepo { get; set; }
+    public int? GitHubNumber { get; set; }
+    public string? GitHubType { get; set; } // "issue" or "pull"
+    public string? GitHubState { get; set; }
+
+    public bool IsGitHubLinked => GitHubUrl is not null;
+
     public TodoItem() => Title = string.Empty;
 
     public TodoItem(string title) => Title = title;

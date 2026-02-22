@@ -17,7 +17,18 @@ public sealed class FirestoreService
 
     public async Task<string> AddTodoAsync(TodoItem item)
     {
-        var data = new { title = item.Title, isComplete = item.IsComplete, order = item.Order };
+        var data = new
+        {
+            title = item.Title,
+            isComplete = item.IsComplete,
+            order = item.Order,
+            gitHubUrl = item.GitHubUrl,
+            gitHubOwner = item.GitHubOwner,
+            gitHubRepo = item.GitHubRepo,
+            gitHubNumber = item.GitHubNumber,
+            gitHubType = item.GitHubType,
+            gitHubState = item.GitHubState
+        };
         return await _js.InvokeAsync<string>("firebaseInterop.addTodo", data);
     }
 
