@@ -47,15 +47,6 @@
     }
 </style>
 
-@if (_firestoreError is not null)
-{
-    <FluentMessageBar Title="Firestore not available" Intent="MessageIntent.Error" Style="margin: 1rem;">
-        Could not connect to Firestore. Make sure you've
-        <FluentAnchor Href="setup-help" Appearance="Appearance.Hypertext">enabled Firestore</FluentAnchor>
-        in your Firebase project.
-        <br /><small>@_firestoreError</small>
-    </FluentMessageBar>
-}
 
 <div class="floating-input">
     <FluentGrid Spacing="1">
@@ -80,6 +71,26 @@
         @if (_loading)
         {
             <FluentProgress />
+        }
+        else if (_firestoreError is not null)
+        {
+            <div style="text-align: center; padding: 2rem; color: var(--neutral-foreground-hint);">
+                <FluentIcon Value="new Size24.CloudDismiss()" Color="Color.Neutral" />
+                <h3>Firestore is not available</h3>
+                <p>
+                    To save your todos, you need to enable Cloud Firestore in your Firebase project.
+                </p>
+                <p>
+                    <FluentAnchor Href="setup-help" Appearance="Appearance.Accent">View setup guide</FluentAnchor>
+                </p>
+                <p style="font-size: 0.85rem; opacity: 0.7;">@_firestoreError</p>
+            </div>
+        }
+        else if (_todoList.Count == 0)
+        {
+            <div style="text-align: center; padding: 2rem; color: var(--neutral-foreground-hint);">
+                <p>No todos yet. Type something above to get started!</p>
+            </div>
         }
         else
         {
