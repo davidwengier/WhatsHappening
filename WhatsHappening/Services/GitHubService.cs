@@ -59,6 +59,9 @@ public sealed partial class GitHubService
         var root = doc.RootElement;
         var title = root.GetProperty("title").GetString() ?? "Untitled";
         var state = root.GetProperty("state").GetString() ?? "unknown";
+        // GitHub API returns "closed" for both closed and merged PRs
+        if (type == "pull" && state == "closed" && root.TryGetProperty("merged", out var mergedEl) && mergedEl.GetBoolean())
+            state = "merged";
         var body = root.TryGetProperty("body", out var bodyEl) ? bodyEl.GetString() : null;
         if (body is not null && body.Length > 500)
             body = body[..500] + "…";
