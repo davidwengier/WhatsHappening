@@ -83,9 +83,10 @@
     }
 </style>
 
-@if (_refreshingAll)
+@if (_refreshTotal > 0)
 {
-    <FluentProgress Style="height:2px;--progress-min-height:2px;" />
+    <FluentProgress Min="0" Max="@_refreshTotal" Value="@_refreshDone"
+                    Style="height:2px;--progress-min-height:2px;" />
 }
 
 <div class="floating-input">
@@ -259,7 +260,8 @@
     private bool _focusGroupInput;
 
     private TodoItem? _draggedItem;
-    private bool _refreshingAll;
+    private int _refreshTotal;
+    private int _refreshDone;
 
     private List<TodoItem> UngroupedActive => _todoList
         .Where(t => !t.IsComplete && string.IsNullOrEmpty(t.GroupId))
@@ -292,6 +294,9 @@
         {
             _loading = false;
         }
+
+        if (_firestoreError is null)
+            _ = RefreshAllGitHubStatuses();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -301,29 +306,33 @@
             _focusGroupInput = false;
             _groupTextField.FocusAsync();
         }
-
-        if (firstRender)
-        {
-            _ = RefreshAllGitHubStatuses();
-        }
     }
 
     private async Task RefreshAllGitHubStatuses()
     {
-        _refreshingAll = true;
-        await InvokeAsync(StateHasChanged);
         var githubItems = _todoList.Where(t => t.IsGitHubLinked && !t.IsComplete).ToList();
+        if (githubItems.Count == 0) return;
+
+        _refreshTotal = githubItems.Count;
+        _refreshDone = 0;
+        StateHasChanged();
+
         foreach (var item in githubItems)
         {
             try
             {
                 await RefreshGitHub(item);
-                await InvokeAsync(StateHasChanged);
             }
             catch { }
+            _refreshDone++;
+            StateHasChanged();
         }
-        _refreshingAll = false;
-        await InvokeAsync(StateHasChanged);
+
+        // Brief pause so user sees 100%, then hide
+        await Task.Delay(500);
+        _refreshTotal = 0;
+        _refreshDone = 0;
+        StateHasChanged();
     }
 
     private async Task AddTodo()
