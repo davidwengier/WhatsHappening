@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "WhatsHappening",
   "resources": {
-    "hash": "sha256-ZcYtkV4lS8ePyMR8x7FT0zoKI7cSTZcpWL9t6/bIUx0=",
+    "hash": "sha256-En9/JYrBPYpNYL3ZYcYCt7wc5AyHnGs0zf9R1bV7mcs=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Authorization.ox2hsa9e6e.wasm": "Microsoft.AspNetCore.Authorization.wasm",
       "Microsoft.AspNetCore.Components.5mil133d3v.wasm": "Microsoft.AspNetCore.Components.wasm",
@@ -19,7 +19,7 @@
       "Microsoft.Extensions.Logging.Abstractions.dbqukt43or.wasm": "Microsoft.Extensions.Logging.Abstractions.wasm",
       "Microsoft.Extensions.Options.gengnogwit.wasm": "Microsoft.Extensions.Options.wasm",
       "Microsoft.Extensions.Primitives.330fdynik0.wasm": "Microsoft.Extensions.Primitives.wasm",
-      "Microsoft.FluentUI.AspNetCore.Components.pj3rj3357g.wasm": "Microsoft.FluentUI.AspNetCore.Components.wasm",
+      "Microsoft.FluentUI.AspNetCore.Components.fbz12anu5c.wasm": "Microsoft.FluentUI.AspNetCore.Components.wasm",
       "Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.k6mpcldwo4.wasm": "Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.wasm",
       "Microsoft.JSInterop.thjhyg5vln.wasm": "Microsoft.JSInterop.wasm",
       "Microsoft.JSInterop.WebAssembly.pxf5p9f275.wasm": "Microsoft.JSInterop.WebAssembly.wasm",
@@ -50,8 +50,8 @@
       "System.Text.RegularExpressions.hnx46t0cyv.wasm": "System.Text.RegularExpressions.wasm",
       "System.Threading.n5ppejuuhz.wasm": "System.Threading.wasm",
       "System.7mkjnfwul0.wasm": "System.wasm",
-      "System.Private.CoreLib.q04pq528vj.wasm": "System.Private.CoreLib.wasm",
-      "WhatsHappening.uxo8haok89.wasm": "WhatsHappening.wasm",
+      "System.Private.CoreLib.lmfqotia4i.wasm": "System.Private.CoreLib.wasm",
+      "WhatsHappening.gbfy48cyjo.wasm": "WhatsHappening.wasm",
       "dotnet.js": "dotnet.js",
       "dotnet.native.xidrk0eo52.js": "dotnet.native.js",
       "dotnet.native.y68cfu4kuf.wasm": "dotnet.native.wasm",
@@ -76,7 +76,7 @@
     },
     "coreAssembly": {
       "System.Runtime.InteropServices.JavaScript.86ud3rg0f2.wasm": "sha256-AAnORgj9Ao176Q0otUTy5BKaRjOgxF7p4H8d6UP6Ks0=",
-      "System.Private.CoreLib.q04pq528vj.wasm": "sha256-ZnFjt8YEL92IPLbyCh1RxvmzHqiLMKF8ejfqHP6RuGg="
+      "System.Private.CoreLib.lmfqotia4i.wasm": "sha256-nR0IlYRhUmMSv4gCy6fqMBZbuFQe2Sb7f6qZKIaOfbk="
     },
     "assembly": {
       "Microsoft.AspNetCore.Authorization.ox2hsa9e6e.wasm": "sha256-5MIeCdbzNqXTZTpikPSO6LX0sBHpkt7Exxq45AAdK3I=",
@@ -95,7 +95,7 @@
       "Microsoft.Extensions.Logging.Abstractions.dbqukt43or.wasm": "sha256-R/cJw8SuBqncMjI41S/xwyODXE9FLL5Rtfto2bgHcQ8=",
       "Microsoft.Extensions.Options.gengnogwit.wasm": "sha256-iE5IdsswZs+bzrBrYg+UZn83ARwJL0gCmIz92diTNH8=",
       "Microsoft.Extensions.Primitives.330fdynik0.wasm": "sha256-L5NQ4Q3qCOQCVq4fdxJDVX9+tmbCgm5IufwAOUFf37o=",
-      "Microsoft.FluentUI.AspNetCore.Components.pj3rj3357g.wasm": "sha256-S2b6Li5FivXivr9TdVl65DsNNZw4B41/lgEsmziv9/I=",
+      "Microsoft.FluentUI.AspNetCore.Components.fbz12anu5c.wasm": "sha256-CwP6MT0wfodkLtAyUR8ukAignrKwi5HdTkXPk/wBjP8=",
       "Microsoft.FluentUI.AspNetCore.Components.Icons.Regular.k6mpcldwo4.wasm": "sha256-jAwpInp2ohM+qspigfqQv+Lq9QTlHpVYfAESTW+9+og=",
       "Microsoft.JSInterop.thjhyg5vln.wasm": "sha256-D9Er45Fjw626NSAqOOhYj/pBZWGKHTe5EtJh5N1zO4E=",
       "Microsoft.JSInterop.WebAssembly.pxf5p9f275.wasm": "sha256-EzPimVxYUyvc5hlmFOvopAur+oDc/0DNCvYv9ReoU70=",
@@ -125,7 +125,7 @@
       "System.Text.RegularExpressions.hnx46t0cyv.wasm": "sha256-Xd3au+tJsEBkcmZq/qBl9+BlCr541XzSLLxu0tL4AyY=",
       "System.Threading.n5ppejuuhz.wasm": "sha256-ZVqAdmVQkqedPOVid8yORJq6/P4I+NlvR19QR4PIQfY=",
       "System.7mkjnfwul0.wasm": "sha256-H4K9w0OHWwZCaMDfVwQjW0dSqnnS/iuCkysBB+Q2c3A=",
-      "WhatsHappening.uxo8haok89.wasm": "sha256-vjY5aoK7B7WC1OeSXkAwAxhSXCqHRrshpR2XWrkkcdA="
+      "WhatsHappening.gbfy48cyjo.wasm": "sha256-9Jl/4kTPCWfbHWRlMoyfN2HL67Fdc9pvUTtvqq/3B1s="
     },
     "libraryInitializers": {
       "_content/Microsoft.FluentUI.AspNetCore.Components/Microsoft.FluentUI.AspNetCore.Components.lib.module.js": "sha256-saocpjMzEV/5RzpPqa9RdvQ2/NJEkHJesyHry6qfD4U="
