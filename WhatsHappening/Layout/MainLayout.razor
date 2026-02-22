@@ -11,7 +11,7 @@
             </FluentStack>
             <AuthorizeView>
                 <Authorized>
-                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" Style="flex-shrink:0;margin-left:auto;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;">
                         @if (context.User.FindFirst("picture")?.Value is string photoUrl)
                         {
                             <FluentPersona Name="@context.User.Identity?.Name"
@@ -33,7 +33,7 @@
                                       Title="Sign out"
                                       IconStart="@(new Icons.Regular.Size20.SignOut())"
                                       Style="color: var(--neutral-foreground-rest);" />
-                    </FluentStack>
+                    </div>
                 </Authorized>
             </AuthorizeView>
         </div>
