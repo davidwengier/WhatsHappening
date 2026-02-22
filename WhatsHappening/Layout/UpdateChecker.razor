@@ -57,7 +57,7 @@
     {
         while (!ct.IsCancellationRequested)
         {
-            await Task.Delay(TimeSpan.FromMinutes(2), ct);
+            await Task.Delay(TimeSpan.FromSeconds(30), ct);
             try
             {
                 var current = await FetchVersionAsync();
