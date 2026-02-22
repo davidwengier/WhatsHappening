@@ -99,6 +99,7 @@ public sealed partial class GitHubService
         using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
 
         // Walk timeline events looking for cross-referenced PRs
+        var candidates = new List<(int Number, string Repo, string State)>();
         foreach (var ev in doc.RootElement.EnumerateArray())
         {
             if (ev.TryGetProperty("event", out var eventType) && eventType.GetString() == "cross-referenced"
@@ -118,11 +119,16 @@ public sealed partial class GitHubService
                 var prRepoName = issue.TryGetProperty("repository", out var repoEl)
                     ? repoEl.GetProperty("full_name").GetString() ?? $"{owner}/{repo}"
                     : $"{owner}/{repo}";
-                return (prNumber, prRepoName, prState);
+                candidates.Add((prNumber, prRepoName, prState));
             }
         }
 
-        return null;
+        if (candidates.Count == 0) return null;
+
+        // Prefer open PRs over merged/closed
+        return candidates.FirstOrDefault(c => c.State == "open") is var open && open != default
+            ? open
+            : candidates[^1];
     }
 
     [GeneratedRegex(@"https?://github\.com/(?<owner>[^/]+)/(?<repo>[^/]+)/(?<type>issues|pull)/(?<number>\d+)", RegexOptions.IgnoreCase)]
