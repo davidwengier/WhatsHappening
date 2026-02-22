@@ -1,6 +1,7 @@
 @inject HttpClient Http
 @inject IJSRuntime JS
 
+<span class="hide-on-mobile">
 @if (_shortHash is not null)
 {
     <a href="https://github.com/davidwengier/WhatsHappening" target="_blank"
@@ -10,6 +11,7 @@
         </FluentBadge>
     </a>
 }
+</span>
 
 @if (_updateAvailable)
 {
