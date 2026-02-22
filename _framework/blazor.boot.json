@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "WhatsHappening",
   "resources": {
-    "hash": "sha256-s0pi0oQamYYvcB3m5vfY7KP7RyuqHhq15pQNO9gN+uo=",
+    "hash": "sha256-ogkiQlLAEzKH4mu7iAquUOsarLniBp3eirB9RPJPLb0=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Authorization.ox2hsa9e6e.wasm": "Microsoft.AspNetCore.Authorization.wasm",
       "Microsoft.AspNetCore.Components.t5vfbm9cgm.wasm": "Microsoft.AspNetCore.Components.wasm",
@@ -53,7 +53,7 @@
       "System.Threading.n5ppejuuhz.wasm": "System.Threading.wasm",
       "System.7mkjnfwul0.wasm": "System.wasm",
       "System.Private.CoreLib.u0tdt46viw.wasm": "System.Private.CoreLib.wasm",
-      "WhatsHappening.lhgxpuasfi.wasm": "WhatsHappening.wasm",
+      "WhatsHappening.g3nhxlbxub.wasm": "WhatsHappening.wasm",
       "dotnet.js": "dotnet.js",
       "dotnet.native.xidrk0eo52.js": "dotnet.native.js",
       "dotnet.native.y68cfu4kuf.wasm": "dotnet.native.wasm",
@@ -129,7 +129,7 @@
       "System.Text.RegularExpressions.8h6pdp45fo.wasm": "sha256-DJ57UA6GQP1JVJjt8fMcmKLAnvyo/JLpLd3lpO0PuxU=",
       "System.Threading.n5ppejuuhz.wasm": "sha256-ZVqAdmVQkqedPOVid8yORJq6/P4I+NlvR19QR4PIQfY=",
       "System.7mkjnfwul0.wasm": "sha256-H4K9w0OHWwZCaMDfVwQjW0dSqnnS/iuCkysBB+Q2c3A=",
-      "WhatsHappening.lhgxpuasfi.wasm": "sha256-R51LC5Kpq36zIh59/yfUOF0rNaMLJSop0i227ZIQPWg="
+      "WhatsHappening.g3nhxlbxub.wasm": "sha256-1Esw1op+agb+G1q6H7oKee3EH29Hgl3ovFeS384gbFI="
     },
     "libraryInitializers": {
       "_content/Microsoft.FluentUI.AspNetCore.Components/Microsoft.FluentUI.AspNetCore.Components.lib.module.js": "sha256-saocpjMzEV/5RzpPqa9RdvQ2/NJEkHJesyHry6qfD4U="
