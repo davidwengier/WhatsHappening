@@ -34,8 +34,13 @@
     {
         <div style="margin-left:28px;margin-top:4px;margin-bottom:8px;padding:8px 12px;border-left:3px solid var(--accent-fill-rest);font-size:0.85rem;opacity:0.8;">
             <div><strong>@(Item.GitHubType == "pull" ? "Pull Request" : "Issue")</strong> in @Item.GitHubOwner/@Item.GitHubRepo</div>
-            <div style="margin-top:4px;">
+            <div style="margin-top:4px;display:flex;align-items:center;gap:12px;">
                 <a href="@Item.GitHubUrl" target="_blank" style="color:var(--accent-fill-rest);">Open on GitHub ↗</a>
+                <FluentButton Appearance="Appearance.Lightweight"
+                              Style="font-size:0.85rem;"
+                              Loading="_refreshing"
+                              OnClick="Refresh"
+                              IconStart="new Size16.ArrowSync()">Refresh</FluentButton>
             </div>
         </div>
     }
@@ -45,8 +50,10 @@
     [Parameter, EditorRequired] public TodoItem Item { get; set; } = default!;
     [Parameter] public EventCallback<TodoItem> OnToggleComplete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDelete { get; set; }
+    [Parameter] public EventCallback<TodoItem> OnRefresh { get; set; }
 
     private bool _expanded;
+    private bool _refreshing;
 
     private string StateColor => Item.GitHubState switch
     {
@@ -57,4 +64,11 @@
     };
 
     private void ToggleExpand() => _expanded = !_expanded;
+
+    private async Task Refresh()
+    {
+        _refreshing = true;
+        await OnRefresh.InvokeAsync(Item);
+        _refreshing = false;
+    }
 }

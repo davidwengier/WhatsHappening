@@ -106,7 +106,8 @@
                 {
                     <TodoItemRow Item="@todo"
                                  OnToggleComplete="ToggleComplete"
-                                 OnDelete="RemoveTodo" />
+                                 OnDelete="RemoveTodo"
+                                 OnRefresh="RefreshGitHub" />
                 }
             }
 
@@ -118,7 +119,8 @@
                         {
                             <TodoItemRow Item="@todo"
                                          OnToggleComplete="ToggleComplete"
-                                         OnDelete="RemoveTodo" />
+                                         OnDelete="RemoveTodo"
+                                         OnRefresh="RefreshGitHub" />
                         }
                     </FluentAccordionItem>
                 </FluentAccordion>
@@ -142,24 +144,6 @@
         try
         {
             _todoList = await Firestore.GetTodosAsync();
-
-            // Re-fetch titles for GitHub-linked items that have fallback titles
-            foreach (var todo in _todoList.Where(t => t.IsGitHubLinked && t.GitHubOwner is not null && t.GitHubNumber is not null))
-            {
-                var fallback = $"{todo.GitHubOwner}/{todo.GitHubRepo}#{todo.GitHubNumber}";
-                if (todo.Title == fallback || string.IsNullOrEmpty(todo.GitHubState))
-                {
-                    var details = await GitHub.FetchIssuePrDetailsAsync(
-                        todo.GitHubOwner!, todo.GitHubRepo!, todo.GitHubNumber!.Value, todo.GitHubType ?? "issue");
-                    if (details is not null)
-                    {
-                        todo.Title = details.Value.Title;
-                        todo.GitHubState = details.Value.State;
-                        if (todo.Id is not null)
-                            await Firestore.UpdateTodoAsync(todo.Id, new { title = todo.Title, gitHubState = todo.GitHubState });
-                    }
-                }
-            }
         }
         catch (Exception ex)
         {
@@ -209,6 +193,20 @@
             {
                 _firestoreError = ex.Message;
             }
+        }
+    }
+
+    private async Task RefreshGitHub(TodoItem todo)
+    {
+        if (!todo.IsGitHubLinked || todo.GitHubOwner is null || todo.GitHubNumber is null) return;
+        var details = await GitHub.FetchIssuePrDetailsAsync(
+            todo.GitHubOwner, todo.GitHubRepo!, todo.GitHubNumber.Value, todo.GitHubType ?? "issue");
+        if (details is not null)
+        {
+            todo.Title = details.Value.Title;
+            todo.GitHubState = details.Value.State;
+            if (todo.Id is not null)
+                await Firestore.UpdateTodoAsync(todo.Id, new { title = todo.Title, gitHubState = todo.GitHubState });
         }
     }
 
