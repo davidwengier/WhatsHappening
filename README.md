@@ -29,35 +29,33 @@ Replace ad-hoc OneNote / plain lists with a focused, fast, and insightful task w
 ## Architecture Overview
 - Frontend: Blazor WebAssembly (client-only) hosted on GitHub Pages
 - Auth: Firebase Authentication (GitHub OAuth) – only public config embedded client-side
-- Data: Cloud Firestore (document model per user)
+- Data: Cloud Firestore ("bring your own Firebase" – each user owns their entire database)
 - Optional GitHub API calls (REST / GraphQL) for enriched issue metadata
 
-### Data Model (Early Sketch)
+### Data Model
 ```
-users/{userId}
-  profile: { displayName, createdAt }
-  settings: { reminderFrequency, boardColumns }
-users/{userId}/tasks/{taskId}
+todos/{docId}
   title: string
-  description: string
-  tags: [string]
-  order: number (for manual ordering)
-  status: enum (active|in_progress|completed|archived)
-  linkedIssue: { repo: string, number: int, state: string, title: string? }
+  isComplete: boolean
+  order: number
   createdAt: timestamp
   updatedAt: timestamp
-  completedAt: timestamp?
-  archivedAt: timestamp?
-users/{userId}/activity/{activityId}
-  type: enum (create|update|complete|archive|linkIssue|githubUpdate)
-  taskId: string
-  timestamp: timestamp
-  details: map
 ```
 (Subject to iteration as features evolve.)
 
 ## Security Notes
-Firebase web API keys are intentionally public identifiers, not secrets. Real protection is enforced via Firestore Security Rules:
-- Read/write restricted to authenticated user on their own task documents
-- Validation of allowed fields & size limits to mitigate abuse
+Each user provides their own Firebase project ("bring your own Firebase"), so there is no shared backend. The entire database belongs to the user.
+
+Recommended Firestore Security Rules:
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+Firebase web API keys are intentionally public identifiers, not secrets.
 Do NOT commit service account keys or admin credentials.
