@@ -85,7 +85,7 @@
     </div>
     @if (Item.IsGitHubLinked)
     {
-        <div style="display:flex;align-items:center;gap:6px;margin-left:48px;font-size:0.75rem;opacity:@(Item.IsComplete ? "0.4" : "0.7");flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;margin-left:48px;font-size:0.75rem;opacity:@(Item.IsComplete ? "0.4" : "0.7");overflow:hidden;white-space:nowrap;">
             <a href="@Item.GitHubUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;white-space:nowrap;">@Item.GitHubOwner/@Item.GitHubRepo#@Item.GitHubNumber</a>
             @if (Item.GitHubState is not null && !Item.IsComplete)
             {
