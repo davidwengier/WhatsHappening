@@ -13,8 +13,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="3" cy="2.5" r="1.3"/><circle cx="7" cy="2.5" r="1.3"/><circle cx="3" cy="8" r="1.3"/><circle cx="7" cy="8" r="1.3"/><circle cx="3" cy="13.5" r="1.3"/><circle cx="7" cy="13.5" r="1.3"/></svg>
             </div>
         }
-        <FluentCheckbox Value="@Item.IsComplete"
-                        ValueChanged="@((bool _) => OnToggleComplete.InvokeAsync(Item))" />
+
         @if (Item.IsGitHubLinked)
         {
             <a href="@Item.GitHubUrl" target="_blank" title="@(Item.GitHubType == "pull" ? "Pull Request" : "Issue") #@Item.GitHubNumber" style="flex-shrink:0;line-height:0;">@TypeIcon</a>
@@ -43,7 +42,7 @@
                           IconStart="new Size16.Dismiss()">
             </FluentButton>
         }
-        else if (Item.IsExternalLinked && !Item.IsComplete)
+        else if (Item.IsExternalLinked)
         {
             <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
                           OnClick="@(() => ToggleExpand())"
@@ -54,7 +53,7 @@
                           IconStart="new Size16.Delete()">
             </FluentButton>
         }
-        else if (!Item.IsGitHubLinked && !Item.IsComplete)
+        else if (!Item.IsGitHubLinked)
         {
             @if (HasNotes)
             {
@@ -85,13 +84,13 @@
     </div>
     @if (Item.IsGitHubLinked)
     {
-        <div style="display:flex;align-items:center;gap:6px;margin-left:48px;font-size:0.75rem;opacity:@(Item.IsComplete ? "0.4" : "0.7");overflow:hidden;white-space:nowrap;">
+        <div style="display:flex;align-items:center;gap:6px;margin-left:48px;font-size:0.75rem;opacity:0.7;overflow:hidden;white-space:nowrap;">
             <a href="@Item.GitHubUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;white-space:nowrap;">@Item.GitHubOwner/@Item.GitHubRepo#@Item.GitHubNumber</a>
-            @if (Item.GitHubState is not null && !Item.IsComplete)
+            @if (Item.GitHubState is not null)
             {
                 <span style="font-size:0.65rem;padding:1px 6px;border-radius:10px;font-weight:600;background:@StateColor;color:white;">@Item.GitHubState</span>
             }
-            @if (Item.LinkedPrNumber is not null && !Item.IsComplete)
+            @if (Item.LinkedPrNumber is not null)
             {
                 <span style="opacity:0.7;">·</span>
                 <span style="white-space:nowrap;">PR: <a href="@GitHubPrUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@Item.LinkedPrRepo#@Item.LinkedPrNumber</a></span>
@@ -151,7 +150,7 @@
 
 @code {
     [Parameter, EditorRequired] public TodoItem Item { get; set; } = default!;
-    [Parameter] public EventCallback<TodoItem> OnToggleComplete { get; set; }
+
     [Parameter] public EventCallback<TodoItem> OnDelete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnRefresh { get; set; }
     [Parameter] public EventCallback<TodoItem> OnSave { get; set; }
@@ -214,14 +213,13 @@
         _editing = false;
     }
 
-    private bool CanExpandOrEdit => !Item.IsComplete && !_editing && (Item.IsExternalLinked || HasNotes);
+    private bool CanExpandOrEdit => !_editing && (Item.IsExternalLinked || HasNotes);
 
     private string TitleStyle
     {
         get
         {
             var s = "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
-            if (Item.IsComplete) s += "text-decoration:line-through;opacity:0.5;";
             if (CanExpandOrEdit) s += "cursor:pointer;";
             return s;
         }

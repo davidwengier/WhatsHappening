@@ -7,7 +7,6 @@
         {
             <TodoItemRow Item="@todo"
                          ShowDragHandle="ShowDragHandles"
-                         OnToggleComplete="OnToggleComplete"
                          OnDelete="OnDelete"
                          OnRefresh="OnRefresh"
                          OnSave="OnSave"
@@ -48,7 +47,6 @@ else
                     {
                         <TodoItemRow Item="@todo"
                                      ShowDragHandle="ShowDragHandles"
-                                     OnToggleComplete="OnToggleComplete"
                                      OnDelete="OnDelete"
                                      OnRefresh="OnRefresh"
                                      OnSave="OnSave"
@@ -75,7 +73,6 @@ else
     [Parameter, EditorRequired] public List<TodoItem> Items { get; set; } = [];
     [Parameter] public bool StartExpanded { get; set; } = true;
     [Parameter] public bool ShowDragHandles { get; set; } = true;
-    [Parameter] public EventCallback<TodoItem> OnToggleComplete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDelete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnRefresh { get; set; }
     [Parameter] public EventCallback<TodoItem> OnSave { get; set; }

@@ -167,7 +167,6 @@
                 @if (UngroupedActive.Count > 0)
                 {
                     <TodoGroupSection Items="UngroupedActive"
-                                      OnToggleComplete="ToggleComplete"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
@@ -183,7 +182,6 @@
                     <TodoGroupSection Heading="@($"{group.Name} ({items.Count})")"
                                       GroupId="@group.Id"
                                       Items="items"
-                                      OnToggleComplete="ToggleComplete"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
@@ -227,18 +225,7 @@
                 }
             </div>
 
-            @* Completed items (built-in group) *@
-            @if (CompletedItems.Count > 0)
-            {
-                <TodoGroupSection Heading="@($"Completed ({CompletedItems.Count})")"
-                                  Items="CompletedItems"
-                                  StartExpanded="false"
-                                  ShowDragHandles="false"
-                                  OnToggleComplete="ToggleComplete"
-                                  OnDelete="RemoveTodo"
-                                  OnRefresh="RefreshGitHub"
-                                  OnSave="SaveTodo" />
-            }
+
         </div>
     }
 </div>
@@ -272,10 +259,6 @@
     private List<TodoItem> ActiveItemsForGroup(string groupId) => _todoList
         .Where(t => !t.IsComplete && t.GroupId == groupId)
         .OrderBy(t => t.Order).ToList();
-
-    private List<TodoItem> CompletedItems => _todoList
-        .Where(t => t.IsComplete)
-        .OrderByDescending(t => t.CompletedAt ?? 0).ToList();
 
     private int AllActiveCount => _todoList.Count(t => !t.IsComplete);
 
@@ -509,24 +492,6 @@
             await Firestore.UpdateTodoAsync(_draggedItem.Id, new { order = _draggedItem.Order, groupId = _draggedItem.GroupId });
 
         _draggedItem = null;
-    }
-
-    private async Task ToggleComplete(TodoItem todo)
-    {
-        if (todo.Id is null) return;
-        todo.IsComplete = !todo.IsComplete;
-        todo.CompletedAt = todo.IsComplete ? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() : null;
-        try
-        {
-            await Firestore.UpdateTodoAsync(todo.Id, new { isComplete = todo.IsComplete, completedAt = todo.CompletedAt });
-            _firestoreError = null;
-        }
-        catch (Exception ex)
-        {
-            todo.IsComplete = !todo.IsComplete;
-            todo.CompletedAt = todo.IsComplete ? todo.CompletedAt : null;
-            _firestoreError = ex.Message;
-        }
     }
 
     private async Task SaveTodo(TodoItem todo)
