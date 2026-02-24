@@ -394,14 +394,10 @@
         if (group.Id is null) return;
         try
         {
-            // Move items in this group to ungrouped
-            foreach (var todo in _todoList.Where(t => t.GroupId == group.Id))
-            {
+            var affectedTodos = _todoList.Where(t => t.GroupId == group.Id && t.Id is not null).ToList();
+            await Firestore.DeleteGroupWithUngroupAsync(group.Id, affectedTodos.Select(t => t.Id!));
+            foreach (var todo in affectedTodos)
                 todo.GroupId = null;
-                if (todo.Id is not null)
-                    await Firestore.UpdateTodoAsync(todo.Id, new { groupId = (string?)null });
-            }
-            await Firestore.DeleteGroupAsync(group.Id);
             _groups.Remove(group);
             _firestoreError = null;
         }
@@ -413,7 +409,7 @@
 
     private async Task RefreshGitHub(TodoItem todo)
     {
-        if (!todo.IsGitHubLinked || todo.GitHubOwner is null || todo.GitHubNumber is null) return;
+        if (!todo.IsGitHubLinked || todo.GitHubOwner is null || todo.GitHubRepo is null || todo.GitHubNumber is null) return;
         var details = await GitHub.FetchIssuePrDetailsAsync(
             todo.GitHubOwner, todo.GitHubRepo!, todo.GitHubNumber.Value, todo.GitHubType ?? "issue");
         if (details is not null)

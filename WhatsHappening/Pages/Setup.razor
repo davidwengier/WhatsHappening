@@ -112,15 +112,16 @@
             _projectId = existing.ProjectId;
         }
 
-        // Auto-apply share link and redirect
+        // Pre-fill from share link
         if (!string.IsNullOrWhiteSpace(QsConfig))
         {
             var decoded = DecodeConfig(QsConfig);
             if (decoded is not null)
             {
-                await AuthService.SetConfigAsync(decoded);
-                Navigation.NavigateTo("", forceLoad: true);
-                return;
+                _apiKey = decoded.ApiKey;
+                _authDomain = decoded.AuthDomain;
+                _projectId = decoded.ProjectId;
+                _showAppliedMessage = true;
             }
             else
             {
