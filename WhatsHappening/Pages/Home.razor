@@ -182,10 +182,12 @@
                     <TodoGroupSection Heading="@($"{group.Name} ({items.Count})")"
                                       GroupId="@group.Id"
                                       Items="items"
+                                      StartExpanded="group.Expanded"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
                                       OnDeleteGroup="@(() => DeleteGroup(group))"
+                                      OnExpandedChanged="@(expanded => ToggleGroupExpanded(group, expanded))"
                                       OnDragStart="HandleDragStart"
                                       OnDropOnItem="HandleDropOnItem"
                                       OnDropOnGroup="HandleDropOnGroup" />
@@ -405,6 +407,17 @@
         {
             _firestoreError = ex.Message;
         }
+    }
+
+    private async Task ToggleGroupExpanded(TodoGroup group, bool expanded)
+    {
+        group.Expanded = expanded;
+        if (group.Id is null) return;
+        try
+        {
+            await Firestore.UpdateGroupAsync(group.Id, new { expanded });
+        }
+        catch { /* fire-and-forget UI preference */ }
     }
 
     private async Task RefreshGitHub(TodoItem todo)

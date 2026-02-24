@@ -26,7 +26,7 @@
 else
 {
     <FluentAccordion Style="margin-bottom:0.5rem;">
-        <FluentAccordionItem Heading="@Heading" Expanded="_expanded">
+        <FluentAccordionItem Heading="@Heading" Expanded="_expanded" ExpandedChanged="HandleExpandedChanged">
             <ChildContent>
                 @if (Items.Count == 0)
                 {
@@ -80,11 +80,18 @@ else
     [Parameter] public EventCallback<TodoItem> OnDragStart { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }
     [Parameter] public EventCallback<string?> OnDropOnGroup { get; set; }
+    [Parameter] public EventCallback<bool> OnExpandedChanged { get; set; }
 
     private bool _expanded;
     private int _dropZoneCounter;
 
     protected override void OnInitialized() => _expanded = StartExpanded;
+
+    private async Task HandleExpandedChanged(bool expanded)
+    {
+        _expanded = expanded;
+        await OnExpandedChanged.InvokeAsync(expanded);
+    }
 
     private async Task DeleteGroup()
     {
