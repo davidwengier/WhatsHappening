@@ -95,6 +95,15 @@ window.firebaseInterop = {
         await db.collection("groups").doc(docId).delete();
     },
 
+    async deleteGroupWithUngroup(groupId, todoIds) {
+        const batch = db.batch();
+        for (const id of todoIds) {
+            batch.update(db.collection("todos").doc(id), { groupId: null });
+        }
+        batch.delete(db.collection("groups").doc(groupId));
+        await batch.commit();
+    },
+
     // Settings (key-value store)
     async getSetting(key) {
         const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 10000));
