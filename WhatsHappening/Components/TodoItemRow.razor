@@ -212,6 +212,7 @@
         Item.Title = _editTitle;
         Item.Notes = string.IsNullOrWhiteSpace(_editNotes) ? null : _editNotes;
         _editing = false;
+        _expanded = HasNotes;
         await OnSave.InvokeAsync(Item);
     }
 
