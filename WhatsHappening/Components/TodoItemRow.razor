@@ -125,7 +125,7 @@
             }
             @if (!string.IsNullOrEmpty(Item.GitHubBody))
             {
-                <div style="margin-right:36px;white-space:pre-wrap;word-break:break-word;line-height:1.4;">@Item.GitHubBody</div>
+                <div class="markdown-body" style="margin-right:36px;">@LinkHelper.RenderMarkdown(Item.GitHubBody)</div>
             }
             else
             {
@@ -142,7 +142,7 @@
                               OnClick="StartEdit" Title="Edit"
                               IconStart="new Size16.Edit()">
                 </FluentButton>
-                <div style="margin-right:36px;white-space:pre-wrap;word-break:break-word;line-height:1.4;">@LinkHelper.Linkify(Item.Notes)</div>
+                <div class="markdown-body" style="margin-right:36px;">@LinkHelper.RenderMarkdown(Item.Notes)</div>
             }
             else
             {
