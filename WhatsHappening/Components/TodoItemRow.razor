@@ -59,7 +59,7 @@
     </div>
     @if (Item.IsGitHubLinked)
     {
-        <div style="display:flex;align-items:center;gap:4px;margin-left:48px;font-size:0.75rem;overflow:hidden;white-space:nowrap;">
+        <div class="scroll-hidden" style="display:flex;align-items:center;gap:4px;margin-left:48px;font-size:0.75rem;white-space:nowrap;">
             <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
                 <span style="line-height:0;flex-shrink:0;">@TypeIcon</span>
                 <a href="@Item.GitHubUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@Item.GitHubOwner/@Item.GitHubRepo#@Item.GitHubNumber</a>
@@ -86,7 +86,7 @@
     }
     else if (HasLinks)
     {
-        <div style="display:flex;align-items:center;gap:4px;margin-left:48px;font-size:0.75rem;overflow:hidden;white-space:nowrap;">
+        <div class="scroll-hidden" style="display:flex;align-items:center;gap:4px;margin-left:48px;font-size:0.75rem;white-space:nowrap;">
             @foreach (var link in Item.Links!)
             {
                 <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
