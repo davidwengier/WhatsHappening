@@ -62,7 +62,7 @@
         }
         else if (!Item.IsGitHubLinked)
         {
-            @if (HasNotes)
+            @if (HasNotes || HasLinks)
             {
                 <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
                               OnClick="@(() => ToggleExpand())"
@@ -153,6 +153,51 @@
             }
         </div>
     }
+    @if (_expanded || _addingLink)
+    {
+        <div style="margin-left:28px;margin-top:4px;margin-bottom:8px;font-size:0.8rem;">
+            @if (Item.Links is { Count: > 0 })
+            {
+                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;">
+                    @foreach (var link in Item.Links)
+                    {
+                        <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);font-size:0.75rem;">
+                            <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@LinkDisplay(link)</a>
+                            <span @onclick="@(() => RemoveLink(link))" style="cursor:pointer;opacity:0.5;font-size:0.65rem;" title="Remove link">✕</span>
+                        </span>
+                    }
+                </div>
+            }
+            @if (_addingLink)
+            {
+                <div style="display:flex;align-items:center;gap:4px;">
+                    <FluentTextField @bind-Value="_newLinkUrl" Immediate="true"
+                                     @onkeypress="HandleLinkKeyPress"
+                                     Placeholder="URL" Style="flex:2;font-size:0.8rem;"
+                                     Appearance="FluentInputAppearance.Filled" />
+                    <FluentTextField @bind-Value="_newLinkLabel" Immediate="true"
+                                     @onkeypress="HandleLinkKeyPress"
+                                     Placeholder="Label (optional)" Style="flex:1;font-size:0.8rem;"
+                                     Appearance="FluentInputAppearance.Filled" />
+                    <FluentButton OnClick="SaveLink" Title="Add"
+                                  Style="width:28px!important;height:28px!important;"
+                                  IconStart="new Size16.Checkmark()">
+                    </FluentButton>
+                    <FluentButton OnClick="@(() => _addingLink = false)" Title="Cancel"
+                                  Style="width:28px!important;height:28px!important;"
+                                  IconStart="new Size16.Dismiss()">
+                    </FluentButton>
+                </div>
+            }
+            else
+            {
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="@(() => _addingLink = true)"
+                              IconStart="new Size16.Link()" Style="font-size:0.75rem;opacity:0.6;padding:0;">
+                    Add link
+                </FluentButton>
+            }
+        </div>
+    }
 </div>
 
 @code {
@@ -175,8 +220,12 @@
     private int _dragCounter;
     private string _editTitle = string.Empty;
     private string? _editNotes;
+    private bool _addingLink;
+    private string? _newLinkUrl;
+    private string? _newLinkLabel;
 
     private bool HasNotes => !string.IsNullOrWhiteSpace(Item.Notes);
+    private bool HasLinks => Item.Links is { Count: > 0 };
 
     private string DropIndicator => _dragCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "";
 
@@ -226,7 +275,7 @@
         await OnEditEnd.InvokeAsync(Item);
     }
 
-    private bool CanExpandOrEdit => !_editing && (Item.IsExternalLinked || HasNotes);
+    private bool CanExpandOrEdit => !_editing && (Item.IsExternalLinked || HasNotes || HasLinks);
 
     private string TitleStyle
     {
@@ -292,5 +341,45 @@
         _refreshing = true;
         await OnRefresh.InvokeAsync(Item);
         _refreshing = false;
+    }
+
+    private async Task HandleLinkKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SaveLink();
+    }
+
+    private async Task SaveLink()
+    {
+        if (string.IsNullOrWhiteSpace(_newLinkUrl)) return;
+        Item.Links ??= [];
+        Item.Links.Add(new TodoLink
+        {
+            Url = _newLinkUrl.Trim(),
+            Label = string.IsNullOrWhiteSpace(_newLinkLabel) ? null : _newLinkLabel.Trim()
+        });
+        _newLinkUrl = null;
+        _newLinkLabel = null;
+        _addingLink = false;
+        await OnSave.InvokeAsync(Item);
+    }
+
+    private async Task RemoveLink(TodoLink link)
+    {
+        Item.Links?.Remove(link);
+        await OnSave.InvokeAsync(Item);
+    }
+
+    private static string LinkDisplay(TodoLink link)
+    {
+        if (!string.IsNullOrWhiteSpace(link.Label)) return link.Label;
+        try
+        {
+            var uri = new Uri(link.Url);
+            var host = uri.Host.Replace("www.", "");
+            var path = uri.AbsolutePath.TrimEnd('/');
+            if (path.Length > 30) path = "…" + path[^25..];
+            return host + path;
+        }
+        catch { return link.Url; }
     }
 }

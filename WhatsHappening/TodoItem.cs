@@ -27,6 +27,9 @@ public sealed class TodoItem
     public string? LinkedPrRepo { get; set; }
     public string? LinkedPrState { get; set; }
 
+    // Extra links (Azure DevOps builds, related URLs, etc.)
+    public List<TodoLink>? Links { get; set; }
+
     public bool IsGitHubLinked => GitHubUrl is not null;
     public bool IsExternalLinked => IsGitHubLinked;
 
@@ -39,4 +42,10 @@ public sealed class GitHubLabel
 {
     public string Name { get; set; } = string.Empty;
     public string Color { get; set; } = "636c76"; // hex without #
+}
+
+public sealed class TodoLink
+{
+    public string Url { get; set; } = string.Empty;
+    public string? Label { get; set; }
 }
