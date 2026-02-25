@@ -99,36 +99,7 @@
         }
 
         <div class="list-content">
-            @* Add group button/input *@
-            <div class="add-group-row">
-                @if (_addingGroup)
-                {
-                    <FluentTextField @ref="_groupTextField"
-                                     @bind-Value="_newGroupName"
-                                     Immediate="true"
-                                     @onkeypress="HandleGroupKeyPress"
-                                     Placeholder="Group name"
-                                     Style="flex:1;"
-                                     Appearance="FluentInputAppearance.Filled" />
-                    <FluentButton OnClick="AddGroup" Title="Create group"
-                                  Style="width:30px!important;height:30px!important;"
-                                  IconStart="new Size16.Checkmark()">
-                    </FluentButton>
-                    <FluentButton OnClick="@(() => _addingGroup = false)" Title="Cancel"
-                                  Style="width:30px!important;height:30px!important;"
-                                  IconStart="new Size16.Dismiss()">
-                    </FluentButton>
-                }
-                else
-                {
-                    <FluentButton Appearance="Appearance.Lightweight"
-                                  OnClick="@(() => { _addingGroup = true; _focusGroupInput = true; })"
-                                  IconStart="new Size16.Add()"
-                                  Style="font-size:0.85rem;opacity:0.6;">
-                        Add group
-                    </FluentButton>
-                }
-            </div>
+            <AddGroupInput OnAddGroup="AddGroup" />
 
             @* Completed items (built-in group) *@
             @if (CompletedItems.Count > 0)
@@ -154,15 +125,9 @@
     private List<TodoGroup> _groups = [];
     private bool _loading = true;
     private string? _firestoreError;
-    private bool _addingGroup;
-    private string? _newGroupName;
-    private FluentTextField? _groupTextField;
-
     private string InputPlaceholder => _selectedGroupId == "" ? "Enter a Todo" : $"Add to {SelectedGroupName}";
 
     private string SelectedGroupName => _selectedGroupId == "" ? "Ungrouped" : _groups.FirstOrDefault(g => g.Id == _selectedGroupId)?.Name ?? "group";
-
-    private bool _focusGroupInput;
 
     private TodoItem? _draggedItem;
     private int _refreshTotal;
@@ -201,15 +166,6 @@
 
         if (_firestoreError is null)
             _ = RefreshAllGitHubStatuses();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (_focusGroupInput && _groupTextField is not null)
-        {
-            _focusGroupInput = false;
-            _groupTextField.FocusAsync();
-        }
     }
 
     private async Task RefreshAllGitHubStatuses()
@@ -288,23 +244,18 @@
         }
     }
 
-    private async Task AddGroup()
+    private async Task AddGroup(string name)
     {
-        if (!string.IsNullOrWhiteSpace(_newGroupName))
+        var group = new TodoGroup(name) { Order = _groups.Count };
+        try
         {
-            var group = new TodoGroup(_newGroupName.Trim()) { Order = _groups.Count };
-            try
-            {
-                group.Id = await Firestore.AddGroupAsync(group);
-                _groups.Add(group);
-                _newGroupName = string.Empty;
-                _addingGroup = false;
-                _firestoreError = null;
-            }
-            catch (Exception ex)
-            {
-                _firestoreError = ex.Message;
-            }
+            group.Id = await Firestore.AddGroupAsync(group);
+            _groups.Add(group);
+            _firestoreError = null;
+        }
+        catch (Exception ex)
+        {
+            _firestoreError = ex.Message;
         }
     }
 
@@ -465,11 +416,6 @@
     private async Task HandleKeyPress(KeyboardEventArgs e)
     {
         if (e.Key == "Enter") await AddTodo();
-    }
-
-    private async Task HandleGroupKeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") await AddGroup();
     }
 
 }

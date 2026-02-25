@@ -1,0 +1,64 @@
+@using Microsoft.FluentUI.AspNetCore.Components.Icons.Regular
+
+<div style="display:flex;align-items:center;gap:8px;margin-top:0.75rem;padding:4px 0;">
+    @if (_adding)
+    {
+        <FluentTextField @ref="_textField"
+                         @bind-Value="_name"
+                         Immediate="true"
+                         @onkeypress="HandleKeyPress"
+                         Placeholder="Group name"
+                         Style="flex:1;"
+                         Appearance="FluentInputAppearance.Filled" />
+        <FluentButton OnClick="Submit" Title="Create group"
+                      Style="width:30px!important;height:30px!important;"
+                      IconStart="new Size16.Checkmark()">
+        </FluentButton>
+        <FluentButton OnClick="@(() => _adding = false)" Title="Cancel"
+                      Style="width:30px!important;height:30px!important;"
+                      IconStart="new Size16.Dismiss()">
+        </FluentButton>
+    }
+    else
+    {
+        <FluentButton Appearance="Appearance.Lightweight"
+                      OnClick="@(() => { _adding = true; _focusInput = true; })"
+                      IconStart="new Size16.Add()"
+                      Style="font-size:0.85rem;opacity:0.6;">
+            Add group
+        </FluentButton>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback<string> OnAddGroup { get; set; }
+
+    private FluentTextField? _textField;
+    private bool _adding;
+    private bool _focusInput;
+    private string? _name;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_focusInput && _textField is not null)
+        {
+            _focusInput = false;
+            _textField.FocusAsync();
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Submit();
+    }
+
+    private async Task Submit()
+    {
+        if (!string.IsNullOrWhiteSpace(_name))
+        {
+            await OnAddGroup.InvokeAsync(_name.Trim());
+            _name = null;
+            _adding = false;
+        }
+    }
+}
