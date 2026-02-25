@@ -28,11 +28,8 @@
 }
 else
 {
-    <div style="margin-bottom:0.5rem;"
-         @ondragover="@(() => { })" @ondragover:preventDefault="IsGroupDragging"
-         @ondrop="HandleDropGroupOnThis" @ondrop:preventDefault
-         @ondragenter="GroupDragEnter" @ondragleave="GroupDragLeave">
-        <FluentAccordion Style="@AccordionStyle">
+    <div style="margin-bottom:0.5rem;@(IsDragSource ? "opacity:0.4;" : "")">
+        <FluentAccordion>
             <FluentAccordionItem Expanded="_expanded" ExpandedChanged="HandleExpandedChanged">
                 <HeadingTemplate>
                     <div style="display:flex;align-items:center;gap:6px;width:100%;">
@@ -110,15 +107,10 @@ else
     [Parameter] public EventCallback<string?> OnDropOnGroup { get; set; }
     [Parameter] public EventCallback<bool> OnExpandedChanged { get; set; }
     [Parameter] public EventCallback<string?> OnGroupDragStart { get; set; }
-    [Parameter] public EventCallback<string?> OnDropGroupOnGroup { get; set; }
+    [Parameter] public bool IsDragSource { get; set; }
 
     private bool _expanded;
     private int _dropZoneCounter;
-    private int _groupDropCounter;
-
-    private string AccordionStyle => _groupDropCounter > 0 && IsGroupDragging
-        ? "outline:2px solid var(--accent-fill-rest);border-radius:4px;"
-        : "";
 
     protected override void OnInitialized() => _expanded = StartExpanded;
 
@@ -143,14 +135,4 @@ else
     {
         await OnGroupDragStart.InvokeAsync(GroupId);
     }
-
-    private async Task HandleDropGroupOnThis()
-    {
-        _groupDropCounter = 0;
-        if (IsGroupDragging)
-            await OnDropGroupOnGroup.InvokeAsync(GroupId);
-    }
-
-    private void GroupDragEnter() => _groupDropCounter++;
-    private void GroupDragLeave() => _groupDropCounter--;
 }
