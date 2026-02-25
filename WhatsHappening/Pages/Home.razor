@@ -164,11 +164,15 @@
         else
         {
             <div class="groups-grid">
+                @{
+                    var sortedGroups = _groups.OrderBy(g => g.Order).ToList();
+                }
                 @* Ungrouped active items *@
                 @if (UngroupedActive.Count > 0)
                 {
                     <TodoGroupSection Items="UngroupedActive"
                                       IsGroupDragging="@false"
+                                      ShowMoveButtons="@(sortedGroups.Count > 1)"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
@@ -181,9 +185,6 @@
                 }
 
                 @* User-created groups *@
-                @{
-                    var sortedGroups = _groups.OrderBy(g => g.Order).ToList();
-                }
                 @for (int idx = 0; idx < sortedGroups.Count; idx++)
                 {
                     var group = sortedGroups[idx];
