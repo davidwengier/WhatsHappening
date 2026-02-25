@@ -10,6 +10,8 @@
                          OnDelete="OnDelete"
                          OnRefresh="OnRefresh"
                          OnSave="OnSave"
+                         OnEditStart="OnEditStart"
+                         OnEditEnd="OnEditEnd"
                          OnDragStart="OnDragStart"
                          OnDropOnItem="OnDropOnItem" />
         }
@@ -50,6 +52,8 @@ else
                                      OnDelete="OnDelete"
                                      OnRefresh="OnRefresh"
                                      OnSave="OnSave"
+                                     OnEditStart="OnEditStart"
+                                     OnEditEnd="OnEditEnd"
                                      OnDragStart="OnDragStart"
                                      OnDropOnItem="OnDropOnItem" />
                     }
@@ -76,6 +80,8 @@ else
     [Parameter] public EventCallback<TodoItem> OnDelete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnRefresh { get; set; }
     [Parameter] public EventCallback<TodoItem> OnSave { get; set; }
+    [Parameter] public EventCallback<TodoItem> OnEditStart { get; set; }
+    [Parameter] public EventCallback<TodoItem> OnEditEnd { get; set; }
     [Parameter] public EventCallback OnDeleteGroup { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDragStart { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }

@@ -5,6 +5,7 @@
 @inject FirestoreService Firestore
 @inject GitHubService GitHub
 @attribute [Authorize]
+@implements IAsyncDisposable
 
 <PageTitle>What's Happening</PageTitle>
 
@@ -170,6 +171,8 @@
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
+                                      OnEditStart="HandleEditStart"
+                                      OnEditEnd="HandleEditEnd"
                                       OnDragStart="HandleDragStart"
                                       OnDropOnItem="HandleDropOnItem"
                                       OnDropOnGroup="HandleDropOnGroup" />
@@ -186,6 +189,8 @@
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
+                                      OnEditStart="HandleEditStart"
+                                      OnEditEnd="HandleEditEnd"
                                       OnDeleteGroup="@(() => DeleteGroup(group))"
                                       OnExpandedChanged="@(expanded => ToggleGroupExpanded(group, expanded))"
                                       OnDragStart="HandleDragStart"
@@ -244,6 +249,8 @@
     private bool _showGroupMenu;
     private string? _newGroupName;
     private FluentTextField? _groupTextField;
+    private DotNetObjectReference<Home>? _dotNetRef;
+    private readonly HashSet<string> _editingItemIds = new();
 
     private string InputPlaceholder => _selectedGroupId == "" ? "Enter a Todo" : $"Add to {SelectedGroupName}";
 
@@ -283,7 +290,12 @@
         }
 
         if (_firestoreError is null)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await Firestore.ListenForTodoChangesAsync(_dotNetRef);
+            await Firestore.ListenForGroupChangesAsync(_dotNetRef);
             _ = RefreshAllGitHubStatuses();
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -542,6 +554,57 @@
     private async Task HandleGroupKeyPress(KeyboardEventArgs e)
     {
         if (e.Key == "Enter") await AddGroup();
+    }
+
+    // Real-time listener callbacks
+
+    [JSInvokable]
+    public void OnTodosChanged(List<TodoItem> newTodos)
+    {
+        // Don't disrupt an active drag operation
+        if (_draggedItem is not null) return;
+
+        // Preserve locally-edited items at their current position
+        foreach (var editingId in _editingItemIds)
+        {
+            var localItem = _todoList.FirstOrDefault(t => t.Id == editingId);
+            if (localItem is not null)
+            {
+                var remoteIndex = newTodos.FindIndex(t => t.Id == editingId);
+                if (remoteIndex >= 0)
+                    newTodos[remoteIndex] = localItem;
+                else
+                    newTodos.Add(localItem);
+            }
+        }
+
+        _todoList = newTodos;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnGroupsChanged(List<TodoGroup> newGroups)
+    {
+        _groups = newGroups;
+        StateHasChanged();
+    }
+
+    // Edit state tracking (prevents listener from overwriting in-progress edits)
+
+    private void HandleEditStart(TodoItem item)
+    {
+        if (item.Id is not null) _editingItemIds.Add(item.Id);
+    }
+
+    private void HandleEditEnd(TodoItem item)
+    {
+        if (item.Id is not null) _editingItemIds.Remove(item.Id);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try { await Firestore.StopListeningAsync(); } catch { }
+        _dotNetRef?.Dispose();
     }
 
 }

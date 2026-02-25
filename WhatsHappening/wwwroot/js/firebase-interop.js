@@ -68,6 +68,53 @@ window.firebaseInterop = {
         await batch.commit();
     },
 
+    // Real-time listeners
+
+    _todosUnsubscribe: null,
+    _groupsUnsubscribe: null,
+
+    listenTodos(dotNetRef) {
+        this.stopListenTodos();
+        this._todosUnsubscribe = db.collection("todos").orderBy("order")
+            .onSnapshot(
+                (snapshot) => {
+                    const todos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+                    dotNetRef.invokeMethodAsync("OnTodosChanged", todos);
+                },
+                (error) => {
+                    console.error("Todos listener error:", error);
+                }
+            );
+    },
+
+    stopListenTodos() {
+        if (this._todosUnsubscribe) {
+            this._todosUnsubscribe();
+            this._todosUnsubscribe = null;
+        }
+    },
+
+    listenGroups(dotNetRef) {
+        this.stopListenGroups();
+        this._groupsUnsubscribe = db.collection("groups").orderBy("order")
+            .onSnapshot(
+                (snapshot) => {
+                    const groups = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+                    dotNetRef.invokeMethodAsync("OnGroupsChanged", groups);
+                },
+                (error) => {
+                    console.error("Groups listener error:", error);
+                }
+            );
+    },
+
+    stopListenGroups() {
+        if (this._groupsUnsubscribe) {
+            this._groupsUnsubscribe();
+            this._groupsUnsubscribe = null;
+        }
+    },
+
     // Group operations
 
     async getGroups() {

@@ -161,6 +161,8 @@
     [Parameter] public EventCallback<TodoItem> OnDelete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnRefresh { get; set; }
     [Parameter] public EventCallback<TodoItem> OnSave { get; set; }
+    [Parameter] public EventCallback<TodoItem> OnEditStart { get; set; }
+    [Parameter] public EventCallback<TodoItem> OnEditEnd { get; set; }
     [Parameter] public bool ShowDragHandle { get; set; } = true;
     [Parameter] public EventCallback<TodoItem> OnDragStart { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }
@@ -192,13 +194,14 @@
         }
     }
 
-    private void StartEdit()
+    private async Task StartEdit()
     {
         _editTitle = Item.Title;
         _editNotes = Item.Notes;
         _editing = true;
         _expanded = false;
         _focusTitleField = true;
+        await OnEditStart.InvokeAsync(Item);
     }
 
     private async Task HandleEditKeyPress(KeyboardEventArgs e)
@@ -213,12 +216,14 @@
         Item.Notes = string.IsNullOrWhiteSpace(_editNotes) ? null : _editNotes;
         _editing = false;
         _expanded = HasNotes;
+        await OnEditEnd.InvokeAsync(Item);
         await OnSave.InvokeAsync(Item);
     }
 
-    private void CancelEdit()
+    private async Task CancelEdit()
     {
         _editing = false;
+        await OnEditEnd.InvokeAsync(Item);
     }
 
     private bool CanExpandOrEdit => !_editing && (Item.IsExternalLinked || HasNotes);

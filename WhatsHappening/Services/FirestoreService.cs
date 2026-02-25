@@ -50,6 +50,20 @@ public sealed class FirestoreService
         await _js.InvokeVoidAsync("firebaseInterop.reorderTodos", data);
     }
 
+    // Real-time listeners
+
+    public async Task ListenForTodoChangesAsync<T>(DotNetObjectReference<T> dotNetRef) where T : class
+        => await _js.InvokeVoidAsync("firebaseInterop.listenTodos", dotNetRef);
+
+    public async Task ListenForGroupChangesAsync<T>(DotNetObjectReference<T> dotNetRef) where T : class
+        => await _js.InvokeVoidAsync("firebaseInterop.listenGroups", dotNetRef);
+
+    public async Task StopListeningAsync()
+    {
+        await _js.InvokeVoidAsync("firebaseInterop.stopListenTodos");
+        await _js.InvokeVoidAsync("firebaseInterop.stopListenGroups");
+    }
+
     // Group operations
 
     public async Task<List<TodoGroup>> GetGroupsAsync()
