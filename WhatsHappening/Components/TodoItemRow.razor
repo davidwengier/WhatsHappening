@@ -60,7 +60,7 @@
                           IconStart="new Size16.Delete()">
             </FluentButton>
         }
-        else if (!Item.IsGitHubLinked)
+        else
         {
             @if (HasNotes || HasLinks)
             {
@@ -76,13 +76,6 @@
                               IconStart="new Size16.Edit()">
                 </FluentButton>
             }
-            <FluentButton OnClick="@(() => OnDelete.InvokeAsync(Item))"
-                          Style="width:30px!important;height:30px!important;flex-shrink:0;"
-                          IconStart="new Size16.Delete()">
-            </FluentButton>
-        }
-        else
-        {
             <FluentButton OnClick="@(() => OnDelete.InvokeAsync(Item))"
                           Style="width:30px!important;height:30px!important;flex-shrink:0;"
                           IconStart="new Size16.Delete()">
