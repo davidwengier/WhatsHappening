@@ -23,7 +23,7 @@
         }
         else
         {
-            <div style="@TitleStyle" title="@Item.Title" @onclick="TitleClick">
+            <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" title="@Item.Title" @onclick="ToggleExpand">
                 @if (Item.IsGitHubLinked)
                 {
                     @Item.Title
@@ -263,16 +263,6 @@
         await OnEditEnd.InvokeAsync(Item);
     }
 
-    private string TitleStyle
-    {
-        get
-        {
-            var s = "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
-            if (!_editing) s += "cursor:pointer;";
-            return s;
-        }
-    }
-
     private string StateColor => GitHubStateColor(Item.GitHubState);
     private string LinkedPrColor => GitHubStateColor(Item.LinkedPrState);
 
@@ -309,12 +299,6 @@
         $"""<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="{color}"><path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"/></svg>""");
 
     private void ToggleExpand() => _expanded = !_expanded;
-
-    private void TitleClick()
-    {
-        if (!_editing)
-            ToggleExpand();
-    }
 
     // Pick black or white text based on label background luminance
     private static string ContrastColor(string hexColor)
