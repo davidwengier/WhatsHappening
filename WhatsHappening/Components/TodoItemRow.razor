@@ -78,6 +78,7 @@
                     <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
                         @if (IsAzDoLink(link)) { <span style="line-height:0;flex-shrink:0;">@AzDoIcon</span> }
                         <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@LinkDisplay(link)</a>
+                        @if (_expanded) { <span @onclick="@(() => RemoveLink(link))" style="cursor:pointer;opacity:0.5;font-size:0.65rem;" title="Remove link">✕</span> }
                     </span>
                 }
             }
@@ -91,6 +92,7 @@
                 <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
                     @if (IsAzDoLink(link)) { <span style="line-height:0;flex-shrink:0;">@AzDoIcon</span> }
                     <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@LinkDisplay(link)</a>
+                    @if (_expanded) { <span @onclick="@(() => RemoveLink(link))" style="cursor:pointer;opacity:0.5;font-size:0.65rem;" title="Remove link">✕</span> }
                 </span>
             }
         </div>
@@ -153,19 +155,6 @@
     @if (_expanded || _addingLink)
     {
         <div style="margin-left:28px;margin-top:4px;margin-bottom:8px;font-size:0.8rem;">
-            @if (Item.Links is { Count: > 0 })
-            {
-                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;">
-                    @foreach (var link in Item.Links)
-                    {
-                        <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);font-size:0.75rem;">
-                            @if (IsAzDoLink(link)) { <span style="line-height:0;flex-shrink:0;">@AzDoIcon</span> }
-                            <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@LinkDisplay(link)</a>
-                            <span @onclick="@(() => RemoveLink(link))" style="cursor:pointer;opacity:0.5;font-size:0.65rem;" title="Remove link">✕</span>
-                        </span>
-                    }
-                </div>
-            }
             @if (_addingLink)
             {
                 <div style="display:flex;align-items:center;gap:4px;">
