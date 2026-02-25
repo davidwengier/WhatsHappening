@@ -70,7 +70,6 @@
                 @if (UngroupedActive.Count > 0)
                 {
                     <TodoGroupSection Items="UngroupedActive"
-                                      OnToggleComplete="ToggleComplete"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
@@ -86,7 +85,6 @@
                     <TodoGroupSection Heading="@($"{group.Name} ({items.Count})")"
                                       GroupId="@group.Id"
                                       Items="items"
-                                      OnToggleComplete="ToggleComplete"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
@@ -108,7 +106,6 @@
                                   Items="CompletedItems"
                                   StartExpanded="false"
                                   ShowDragHandles="false"
-                                  OnToggleComplete="ToggleComplete"
                                   OnDelete="RemoveTodo"
                                   OnRefresh="RefreshGitHub"
                                   OnSave="SaveTodo" />
