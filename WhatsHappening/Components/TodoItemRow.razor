@@ -275,15 +275,10 @@
         }
     }
 
-    private string StateColor => Item.GitHubState switch
-    {
-        "open" => "#238636",
-        "closed" => "#da3633",
-        "merged" => "#8957e5",
-        _ => "#636c76"
-    };
+    private string StateColor => GitHubStateColor(Item.GitHubState);
+    private string LinkedPrColor => GitHubStateColor(Item.LinkedPrState);
 
-    private string LinkedPrColor => Item.LinkedPrState switch
+    private static string GitHubStateColor(string? state) => state switch
     {
         "open" => "#238636",
         "closed" => "#da3633",
