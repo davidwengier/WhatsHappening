@@ -62,28 +62,17 @@
         <div class="scroll-hidden" style="display:flex;align-items:center;gap:4px;margin-left:48px;font-size:0.75rem;white-space:nowrap;">
             @if (Item.IsGitHubLinked)
             {
-                <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
-                    <span style="line-height:0;flex-shrink:0;">@TypeIcon</span>
-                    <a href="@Item.GitHubUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@Item.GitHubOwner/@Item.GitHubRepo#@Item.GitHubNumber</a>
-                </span>
+                <LinkLozenge Href="@(Item.GitHubUrl!)" Icon="@TypeIcon" Label="@($"{Item.GitHubOwner}/{Item.GitHubRepo}#{Item.GitHubNumber}")" />
                 @if (Item.LinkedPrNumber is not null)
                 {
-                    <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
-                        <span style="line-height:0;flex-shrink:0;">@LinkedPrIcon</span>
-                        <a href="@GitHubPrUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@Item.LinkedPrRepo#@Item.LinkedPrNumber</a>
-                    </span>
+                    <LinkLozenge Href="@(GitHubPrUrl!)" Icon="@LinkedPrIcon" Label="@($"{Item.LinkedPrRepo}#{Item.LinkedPrNumber}")" />
                 }
             }
             @if (Item.Links is { Count: > 0 })
             {
                 @foreach (var link in Item.Links)
                 {
-                    <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
-                        @{ var icon = LinkIcon(link); }
-                        @if (icon is not null) { <span style="line-height:0;flex-shrink:0;">@icon</span> }
-                        <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@LinkDisplay(link)</a>
-                        @if (_expanded) { <span @onclick="@(() => RemoveLink(link))" style="cursor:pointer;opacity:0.5;font-size:0.65rem;" title="Remove link">✕</span> }
-                    </span>
+                    <LinkLozenge Href="@link.Url" Icon="@LinkIcon(link)" Label="@LinkDisplay(link)" ShowRemove="_expanded" OnRemove="@(() => RemoveLink(link))" />
                 }
             }
         </div>

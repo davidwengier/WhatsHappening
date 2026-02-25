@@ -1,0 +1,19 @@
+<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
+    @if (Icon is not null)
+    {
+        <span style="line-height:0;flex-shrink:0;">@Icon</span>
+    }
+    <a href="@Href" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@Label</a>
+    @if (ShowRemove)
+    {
+        <span @onclick="OnRemove" @onclick:stopPropagation style="cursor:pointer;opacity:0.5;font-size:0.65rem;" title="Remove link">✕</span>
+    }
+</span>
+
+@code {
+    [Parameter, EditorRequired] public string Href { get; set; } = default!;
+    [Parameter, EditorRequired] public string Label { get; set; } = default!;
+    [Parameter] public MarkupString? Icon { get; set; }
+    [Parameter] public bool ShowRemove { get; set; }
+    [Parameter] public EventCallback OnRemove { get; set; }
+}
