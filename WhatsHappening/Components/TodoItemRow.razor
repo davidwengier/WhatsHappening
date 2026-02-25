@@ -14,10 +14,6 @@
             </div>
         }
 
-        @if (Item.IsGitHubLinked)
-        {
-            <a href="@Item.GitHubUrl" target="_blank" title="@(Item.GitHubType == "pull" ? "Pull Request" : "Issue") #@Item.GitHubNumber" style="flex-shrink:0;line-height:0;">@TypeIcon</a>
-        }
         @if (_editing)
         {
             <FluentTextField @ref="_titleField" @bind-Value="_editTitle" Immediate="true"
