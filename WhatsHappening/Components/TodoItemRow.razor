@@ -263,14 +263,12 @@
         await OnEditEnd.InvokeAsync(Item);
     }
 
-    private bool CanExpandOrEdit => !_editing;
-
     private string TitleStyle
     {
         get
         {
             var s = "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
-            if (CanExpandOrEdit) s += "cursor:pointer;";
+            if (!_editing) s += "cursor:pointer;";
             return s;
         }
     }
@@ -314,7 +312,7 @@
 
     private void TitleClick()
     {
-        if (CanExpandOrEdit)
+        if (!_editing)
             ToggleExpand();
     }
 
