@@ -76,7 +76,8 @@
                 @foreach (var link in Item.Links)
                 {
                     <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
-                        @if (IsAzDoLink(link)) { <span style="line-height:0;flex-shrink:0;">@AzDoIcon</span> }
+                        @{ var icon1 = LinkIcon(link); }
+                        @if (icon1 is not null) { <span style="line-height:0;flex-shrink:0;">@icon1</span> }
                         <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@LinkDisplay(link)</a>
                         @if (_expanded) { <span @onclick="@(() => RemoveLink(link))" style="cursor:pointer;opacity:0.5;font-size:0.65rem;" title="Remove link">✕</span> }
                     </span>
@@ -90,7 +91,8 @@
             @foreach (var link in Item.Links!)
             {
                 <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
-                    @if (IsAzDoLink(link)) { <span style="line-height:0;flex-shrink:0;">@AzDoIcon</span> }
+                    @{ var icon2 = LinkIcon(link); }
+                    @if (icon2 is not null) { <span style="line-height:0;flex-shrink:0;">@icon2</span> }
                     <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@LinkDisplay(link)</a>
                     @if (_expanded) { <span @onclick="@(() => RemoveLink(link))" style="cursor:pointer;opacity:0.5;font-size:0.65rem;" title="Remove link">✕</span> }
                 </span>
@@ -394,6 +396,22 @@
         catch { return false; }
     }
 
+    private static bool IsGitHubLink(TodoLink link)
+    {
+        try { return new Uri(link.Url).Host is "github.com" or "www.github.com"; }
+        catch { return false; }
+    }
+
+    private static MarkupString? LinkIcon(TodoLink link)
+    {
+        if (IsAzDoLink(link)) return AzDoIcon;
+        if (IsGitHubLink(link)) return GitHubIcon;
+        return null;
+    }
+
     private static MarkupString AzDoIcon => new(
         """<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="#0078d4"><path d="M15 3.622v8.512L11.5 15l-5.425-1.975v1.958L3.004 10.97l8.951.9V4.044L15 3.622ZM12.7 3.5 7.975.25 3.675 2.1v10.669L1 11.392V3.247L7.8 1l4.9 2.5Z"/></svg>""");
+
+    private static MarkupString GitHubIcon => new(
+        """<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>""");
 }
