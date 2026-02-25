@@ -168,7 +168,7 @@
                 @if (UngroupedActive.Count > 0)
                 {
                     <TodoGroupSection Items="UngroupedActive"
-                                      IsGroupDragging="@(_draggedGroup is not null)"
+                                      IsGroupDragging="@false"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
@@ -180,49 +180,37 @@
                                       OnDropOnGroup="HandleDropOnGroup" />
                 }
 
-                @* User-created groups with drop zones between them *@
+                @* User-created groups *@
                 @{
                     var sortedGroups = _groups.OrderBy(g => g.Order).ToList();
-                    var draggedIdx = _draggedGroup is not null ? sortedGroups.IndexOf(_draggedGroup) : -1;
                 }
-                @for (int idx = 0; idx <= sortedGroups.Count; idx++)
+                @for (int idx = 0; idx < sortedGroups.Count; idx++)
                 {
-                    var zoneIdx = idx;
-                    var afterGroupId = idx < sortedGroups.Count ? sortedGroups[idx].Id : null;
-                    @if (_draggedGroup is not null && zoneIdx != draggedIdx && zoneIdx != draggedIdx + 1)
-                    {
-                        <div @ondragover="@(() => { })" @ondragover:preventDefault
-                             @ondrop="@(() => HandleDropGroupAtZone(afterGroupId))" @ondrop:preventDefault
-                             @ondragenter="@(() => _hoveredGroupZone = zoneIdx)"
-                             @ondragleave="@(() => { if (_hoveredGroupZone == zoneIdx) _hoveredGroupZone = -1; })"
-                             style="min-height:24px;transition:min-height 0.15s;@(_hoveredGroupZone == zoneIdx ? "min-height:32px;border-top:2px solid var(--accent-fill-rest);" : "")">
-                        </div>
-                    }
-                    @if (idx < sortedGroups.Count)
-                    {
-                        var group = sortedGroups[idx];
-                        var items = ActiveItemsForGroup(group.Id!);
-                        <TodoGroupSection @key="group.Id"
-                                          Heading="@($"{group.Name} ({items.Count})")"
-                                          GroupId="@group.Id"
-                                          Items="items"
-                                          StartExpanded="group.Expanded"
-                                          IsGroupDragging="@(_draggedGroup is not null)"
-                                          IsDragSource="@(group == _draggedGroup)"
-                                          OnDelete="RemoveTodo"
-                                          OnRefresh="RefreshGitHub"
-                                          OnSave="SaveTodo"
-                                          OnEditStart="HandleEditStart"
-                                          OnEditEnd="HandleEditEnd"
-                                          OnDeleteGroup="@(() => DeleteGroup(group))"
-                                          OnExpandedChanged="@(expanded => ToggleGroupExpanded(group, expanded))"
-                                          OnDragStart="HandleDragStart"
-                                          OnDragEnd="HandleDragEnd"
-                                          OnDropOnItem="HandleDropOnItem"
-                                          OnDropOnGroup="HandleDropOnGroup"
-                                          OnGroupDragStart="HandleGroupDragStart"
-                                          OnGroupDragEnd="HandleDragEnd" />
-                    }
+                    var group = sortedGroups[idx];
+                    var groupIdx = idx;
+                    var items = ActiveItemsForGroup(group.Id!);
+                    <TodoGroupSection @key="group.Id"
+                                      Heading="@($"{group.Name} ({items.Count})")"
+                                      GroupId="@group.Id"
+                                      Items="items"
+                                      StartExpanded="group.Expanded"
+                                      IsGroupDragging="@(_draggedItem is not null)"
+                                      ShowMoveButtons="@(sortedGroups.Count > 1)"
+                                      IsFirst="@(groupIdx == 0)"
+                                      IsLast="@(groupIdx == sortedGroups.Count - 1)"
+                                      OnDelete="RemoveTodo"
+                                      OnRefresh="RefreshGitHub"
+                                      OnSave="SaveTodo"
+                                      OnEditStart="HandleEditStart"
+                                      OnEditEnd="HandleEditEnd"
+                                      OnDeleteGroup="@(() => DeleteGroup(group))"
+                                      OnExpandedChanged="@(expanded => ToggleGroupExpanded(group, expanded))"
+                                      OnDragStart="HandleDragStart"
+                                      OnDragEnd="HandleDragEnd"
+                                      OnDropOnItem="HandleDropOnItem"
+                                      OnDropOnGroup="HandleDropOnGroup"
+                                      OnMoveGroupUp="@(() => MoveGroup(group, -1))"
+                                      OnMoveGroupDown="@(() => MoveGroup(group, 1))" />
                 }
             </div>
         }
@@ -286,8 +274,6 @@
     private bool _focusGroupInput;
 
     private TodoItem? _draggedItem;
-    private TodoGroup? _draggedGroup;
-    private int _hoveredGroupZone = -1;
     private int _refreshTotal;
     private int _refreshDone;
     private List<TodoItem> UngroupedActive=> _todoList
@@ -499,37 +485,21 @@
     private void HandleDragEnd()
     {
         _draggedItem = null;
-        _draggedGroup = null;
-        _hoveredGroupZone = -1;
     }
 
-    private void HandleGroupDragStart(string? groupId)
+    private async Task MoveGroup(TodoGroup group, int direction)
     {
-        _draggedGroup = _groups.FirstOrDefault(g => g.Id == groupId);
-    }
+        var sorted = _groups.OrderBy(g => g.Order).ToList();
+        var idx = sorted.IndexOf(group);
+        var newIdx = idx + direction;
+        if (newIdx < 0 || newIdx >= sorted.Count) return;
 
-    private async Task HandleDropGroupAtZone(string? targetGroupId)
-    {
-        _hoveredGroupZone = -1;
-        if (_draggedGroup is null || _draggedGroup.Id == targetGroupId) { _draggedGroup = null; return; }
-
-        var sorted = _groups.Where(g => g != _draggedGroup).OrderBy(g => g.Order).ToList();
-        var targetIndex = sorted.FindIndex(g => g.Id == targetGroupId);
-        if (targetIndex < 0) targetIndex = sorted.Count;
-        sorted.Insert(targetIndex, _draggedGroup);
+        // Swap order values
+        (sorted[idx].Order, sorted[newIdx].Order) = (sorted[newIdx].Order, sorted[idx].Order);
 
         var updates = new List<(string Id, int Order)>();
-        for (int i = 0; i < sorted.Count; i++)
-        {
-            if (sorted[i].Order != i)
-            {
-                sorted[i].Order = i;
-                if (sorted[i].Id is not null)
-                    updates.Add((sorted[i].Id!, i));
-            }
-        }
-
-        _draggedGroup = null;
+        if (sorted[idx].Id is not null) updates.Add((sorted[idx].Id!, sorted[idx].Order));
+        if (sorted[newIdx].Id is not null) updates.Add((sorted[newIdx].Id!, sorted[newIdx].Order));
 
         if (updates.Count > 0)
             await Firestore.ReorderGroupsAsync(updates);
@@ -656,7 +626,6 @@
     [JSInvokable]
     public void OnGroupsChanged(List<TodoGroup> newGroups)
     {
-        if (_draggedGroup is not null) return;
         _groups = newGroups;
         StateHasChanged();
     }
