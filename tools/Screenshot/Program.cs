@@ -35,8 +35,8 @@ await using var context = await playwright.Chromium.LaunchPersistentContextAsync
 });
 
 var page = await context.NewPageAsync();
-await page.GotoAsync(url, new() { WaitUntil = WaitUntilState.NetworkIdle });
-await page.WaitForTimeoutAsync(4000);
+await page.GotoAsync(url, new() { WaitUntil = WaitUntilState.DOMContentLoaded });
+await page.WaitForTimeoutAsync(8000);
 await page.ScreenshotAsync(new() { Path = output, FullPage = true });
 
 Console.WriteLine($"Screenshot saved to {output}");
