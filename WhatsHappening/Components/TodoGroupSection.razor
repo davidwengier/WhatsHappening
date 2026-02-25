@@ -27,48 +27,61 @@
 }
 else
 {
-    <FluentAccordion Style="margin-bottom:0.5rem;">
-        <FluentAccordionItem Heading="@Heading" Expanded="_expanded" ExpandedChanged="HandleExpandedChanged">
-            <ChildContent>
-                @if (Items.Count == 0)
-                {
-                    <div @ondragover="@(() => { })" @ondragover:preventDefault="ShowDragHandles"
-                         @ondrop="HandleDropOnGroup" @ondrop:preventDefault
-                         @ondragenter="@(() => _dropZoneCounter++)" @ondragleave="@(() => _dropZoneCounter--)"
-                         style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;min-height:24px;@(_dropZoneCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "")">
-                        No items in this group
-                        @if (OnDeleteGroup.HasDelegate)
-                        {
-                            <span> · </span><a @onclick="DeleteGroup" @onclick:preventDefault style="cursor:pointer;color:var(--accent-fill-rest);text-decoration:none;">Delete group</a>
-                        }
-                    </div>
-                }
-                else
-                {
-                    @foreach (var todo in Items)
+    <div style="display:flex;align-items:flex-start;margin-bottom:0.5rem;"
+         @ondragover="@(() => { })" @ondragover:preventDefault="IsGroupDragging"
+         @ondrop="HandleDropGroupOnThis" @ondrop:preventDefault
+         @ondragenter="GroupDragEnter" @ondragleave="GroupDragLeave">
+        @if (ShowDragHandles)
+        {
+            <div draggable="true" @ondragstart="StartGroupDrag" @ondragstart:stopPropagation
+                 class="hide-on-mobile"
+                 style="cursor:grab;opacity:0.3;flex-shrink:0;padding:10px 4px 0 0;line-height:0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="3" cy="2.5" r="1.3"/><circle cx="7" cy="2.5" r="1.3"/><circle cx="3" cy="8" r="1.3"/><circle cx="7" cy="8" r="1.3"/><circle cx="3" cy="13.5" r="1.3"/><circle cx="7" cy="13.5" r="1.3"/></svg>
+            </div>
+        }
+        <FluentAccordion Style="@AccordionStyle">
+            <FluentAccordionItem Heading="@Heading" Expanded="_expanded" ExpandedChanged="HandleExpandedChanged">
+                <ChildContent>
+                    @if (Items.Count == 0)
                     {
-                        <TodoItemRow Item="@todo"
-                                     ShowDragHandle="ShowDragHandles"
-                                     OnDelete="OnDelete"
-                                     OnRefresh="OnRefresh"
-                                     OnSave="OnSave"
-                                     OnEditStart="OnEditStart"
-                                     OnEditEnd="OnEditEnd"
-                                     OnDragStart="OnDragStart"
-                                     OnDropOnItem="OnDropOnItem" />
-                    }
-                    @if (ShowDragHandles)
-                    {
-                        <div @ondragover="@(() => { })" @ondragover:preventDefault
+                        <div @ondragover="@(() => { })" @ondragover:preventDefault="ShowDragHandles"
                              @ondrop="HandleDropOnGroup" @ondrop:preventDefault
                              @ondragenter="@(() => _dropZoneCounter++)" @ondragleave="@(() => _dropZoneCounter--)"
-                             style="min-height:12px;@(_dropZoneCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "")">
+                             style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;min-height:24px;@(_dropZoneCounter > 0 && !IsGroupDragging ? "border-top:2px solid var(--accent-fill-rest);" : "")">
+                            No items in this group
+                            @if (OnDeleteGroup.HasDelegate)
+                            {
+                                <span> · </span><a @onclick="DeleteGroup" @onclick:preventDefault style="cursor:pointer;color:var(--accent-fill-rest);text-decoration:none;">Delete group</a>
+                            }
                         </div>
                     }
-                }
-            </ChildContent>
-        </FluentAccordionItem>
-    </FluentAccordion>
+                    else
+                    {
+                        @foreach (var todo in Items)
+                        {
+                            <TodoItemRow Item="@todo"
+                                         ShowDragHandle="ShowDragHandles"
+                                         OnDelete="OnDelete"
+                                         OnRefresh="OnRefresh"
+                                         OnSave="OnSave"
+                                         OnEditStart="OnEditStart"
+                                         OnEditEnd="OnEditEnd"
+                                         OnDragStart="OnDragStart"
+                                         OnDropOnItem="OnDropOnItem" />
+                        }
+                        @if (ShowDragHandles)
+                        {
+                            <div @ondragover="@(() => { })" @ondragover:preventDefault
+                                 @ondrop="HandleDropOnGroup" @ondrop:preventDefault
+                                 @ondragenter="@(() => _dropZoneCounter++)" @ondragleave="@(() => _dropZoneCounter--)"
+                                 style="min-height:12px;@(_dropZoneCounter > 0 && !IsGroupDragging ? "border-top:2px solid var(--accent-fill-rest);" : "")">
+                            </div>
+                        }
+                    }
+                </ChildContent>
+            </FluentAccordionItem>
+        </FluentAccordion>
+    </div>
 }
 
 @code {
@@ -77,6 +90,7 @@ else
     [Parameter, EditorRequired] public List<TodoItem> Items { get; set; } = [];
     [Parameter] public bool StartExpanded { get; set; } = true;
     [Parameter] public bool ShowDragHandles { get; set; } = true;
+    [Parameter] public bool IsGroupDragging { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDelete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnRefresh { get; set; }
     [Parameter] public EventCallback<TodoItem> OnSave { get; set; }
@@ -87,9 +101,16 @@ else
     [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }
     [Parameter] public EventCallback<string?> OnDropOnGroup { get; set; }
     [Parameter] public EventCallback<bool> OnExpandedChanged { get; set; }
+    [Parameter] public EventCallback<string?> OnGroupDragStart { get; set; }
+    [Parameter] public EventCallback<string?> OnDropGroupOnGroup { get; set; }
 
     private bool _expanded;
     private int _dropZoneCounter;
+    private int _groupDropCounter;
+
+    private string AccordionStyle => _groupDropCounter > 0 && IsGroupDragging
+        ? "flex:1;outline:2px solid var(--accent-fill-rest);border-radius:4px;"
+        : "flex:1;";
 
     protected override void OnInitialized() => _expanded = StartExpanded;
 
@@ -109,4 +130,19 @@ else
         _dropZoneCounter = 0;
         await OnDropOnGroup.InvokeAsync(GroupId);
     }
+
+    private async Task StartGroupDrag()
+    {
+        await OnGroupDragStart.InvokeAsync(GroupId);
+    }
+
+    private async Task HandleDropGroupOnThis()
+    {
+        _groupDropCounter = 0;
+        if (IsGroupDragging)
+            await OnDropGroupOnGroup.InvokeAsync(GroupId);
+    }
+
+    private void GroupDragEnter() => _groupDropCounter++;
+    private void GroupDragLeave() => _groupDropCounter--;
 }

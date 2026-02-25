@@ -142,6 +142,16 @@ window.firebaseInterop = {
         await db.collection("groups").doc(docId).delete();
     },
 
+    async reorderGroups(updates) {
+        const batch = db.batch();
+        for (const u of updates) {
+            batch.update(db.collection("groups").doc(u.id), {
+                order: u.order,
+            });
+        }
+        await batch.commit();
+    },
+
     async deleteGroupWithUngroup(groupId, todoIds) {
         const batch = db.batch();
         for (const id of todoIds) {

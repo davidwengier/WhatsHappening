@@ -168,6 +168,8 @@
                 @if (UngroupedActive.Count > 0)
                 {
                     <TodoGroupSection Items="UngroupedActive"
+                                      ShowDragHandles="@(_draggedGroup is null)"
+                                      IsGroupDragging="@(_draggedGroup is not null)"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
@@ -186,6 +188,8 @@
                                       GroupId="@group.Id"
                                       Items="items"
                                       StartExpanded="group.Expanded"
+                                      ShowDragHandles="@(_draggedGroup is null)"
+                                      IsGroupDragging="@(_draggedGroup is not null)"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
@@ -195,7 +199,9 @@
                                       OnExpandedChanged="@(expanded => ToggleGroupExpanded(group, expanded))"
                                       OnDragStart="HandleDragStart"
                                       OnDropOnItem="HandleDropOnItem"
-                                      OnDropOnGroup="HandleDropOnGroup" />
+                                      OnDropOnGroup="HandleDropOnGroup"
+                                      OnGroupDragStart="HandleGroupDragStart"
+                                      OnDropGroupOnGroup="HandleDropGroupOnGroup" />
                 }
             </div>
         }
@@ -259,6 +265,7 @@
     private bool _focusGroupInput;
 
     private TodoItem? _draggedItem;
+    private TodoGroup? _draggedGroup;
     private int _refreshTotal;
     private int _refreshDone;
     private List<TodoItem> UngroupedActive=> _todoList
@@ -467,6 +474,37 @@
 
     private void HandleDragStart(TodoItem item) => _draggedItem = item;
 
+    private void HandleGroupDragStart(string? groupId)
+    {
+        _draggedGroup = _groups.FirstOrDefault(g => g.Id == groupId);
+    }
+
+    private async Task HandleDropGroupOnGroup(string? targetGroupId)
+    {
+        if (_draggedGroup is null || _draggedGroup.Id == targetGroupId) { _draggedGroup = null; return; }
+
+        var sorted = _groups.Where(g => g != _draggedGroup).OrderBy(g => g.Order).ToList();
+        var targetIndex = sorted.FindIndex(g => g.Id == targetGroupId);
+        if (targetIndex < 0) targetIndex = sorted.Count;
+        sorted.Insert(targetIndex, _draggedGroup);
+
+        var updates = new List<(string Id, int Order)>();
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            if (sorted[i].Order != i)
+            {
+                sorted[i].Order = i;
+                if (sorted[i].Id is not null)
+                    updates.Add((sorted[i].Id!, i));
+            }
+        }
+
+        _draggedGroup = null;
+
+        if (updates.Count > 0)
+            await Firestore.ReorderGroupsAsync(updates);
+    }
+
     private async Task HandleDropOnItem(TodoItem target)
     {
         if (_draggedItem is null || _draggedItem == target) { _draggedItem = null; return; }
@@ -583,6 +621,7 @@
     [JSInvokable]
     public void OnGroupsChanged(List<TodoGroup> newGroups)
     {
+        if (_draggedGroup is not null) return;
         _groups = newGroups;
         StateHasChanged();
     }
