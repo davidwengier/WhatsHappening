@@ -1,5 +1,12 @@
 @import '/_content/Microsoft.FluentUI.AspNetCore.Components/css/reboot.css';
 
+.scroll-hidden {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.scroll-hidden::-webkit-scrollbar { display: none; }
+
 body {
     --body-font: "Segoe UI Variable", "Segoe UI", sans-serif;
     font-family: var(--body-font);
