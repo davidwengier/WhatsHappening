@@ -371,8 +371,7 @@
 
             try
             {
-                todo.Id = await Firestore.AddTodoAsync(todo);
-                _todoList.Add(todo);
+                await Firestore.AddTodoAsync(todo);
                 _newTodoItem = string.Empty;
                 _firestoreError = null;
             }
@@ -390,8 +389,7 @@
             var group = new TodoGroup(_newGroupName.Trim()) { Order = _groups.Count };
             try
             {
-                group.Id = await Firestore.AddGroupAsync(group);
-                _groups.Add(group);
+                await Firestore.AddGroupAsync(group);
                 _newGroupName = string.Empty;
                 _addingGroup = false;
                 _firestoreError = null;
