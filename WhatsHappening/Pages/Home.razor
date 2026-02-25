@@ -361,24 +361,6 @@
         _draggedItem = null;
     }
 
-    private async Task ToggleComplete(TodoItem todo)
-    {
-        if (todo.Id is null) return;
-        todo.IsComplete = !todo.IsComplete;
-        todo.CompletedAt = todo.IsComplete ? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() : null;
-        try
-        {
-            await Firestore.UpdateTodoAsync(todo.Id, new { isComplete = todo.IsComplete, completedAt = todo.CompletedAt });
-            _firestoreError = null;
-        }
-        catch (Exception ex)
-        {
-            todo.IsComplete = !todo.IsComplete;
-            todo.CompletedAt = todo.IsComplete ? todo.CompletedAt : null;
-            _firestoreError = ex.Message;
-        }
-    }
-
     private async Task SaveTodo(TodoItem todo)
     {
         if (todo.Id is null) return;

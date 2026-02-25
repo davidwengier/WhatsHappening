@@ -44,12 +44,6 @@ public sealed class FirestoreService
     public async Task DeleteTodoAsync(string docId)
         => await _js.InvokeVoidAsync("firebaseInterop.deleteTodo", docId);
 
-    public async Task ReorderTodosAsync(IEnumerable<(string Id, int Order)> updates)
-    {
-        var data = updates.Select(u => new { id = u.Id, order = u.Order }).ToArray();
-        await _js.InvokeVoidAsync("firebaseInterop.reorderTodos", data);
-    }
-
     // Real-time listeners
 
     public async Task ListenForTodoChangesAsync<T>(DotNetObjectReference<T> dotNetRef) where T : class
@@ -89,14 +83,4 @@ public sealed class FirestoreService
 
     public async Task DeleteGroupAsync(string docId)
         => await _js.InvokeVoidAsync("firebaseInterop.deleteGroup", docId);
-
-    public async Task DeleteGroupWithUngroupAsync(string groupId, IEnumerable<string> todoIds)
-        => await _js.InvokeVoidAsync("firebaseInterop.deleteGroupWithUngroup", groupId, todoIds.ToArray());
-
-    // Settings
-    public async Task<string?> GetSettingAsync(string key)
-        => await _js.InvokeAsync<string?>("firebaseInterop.getSetting", key);
-
-    public async Task SetSettingAsync(string key, string value)
-        => await _js.InvokeVoidAsync("firebaseInterop.setSetting", key, value);
 }
