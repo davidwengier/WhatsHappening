@@ -31,7 +31,6 @@ public sealed class TodoItem
     public List<TodoLink>? Links { get; set; }
 
     public bool IsGitHubLinked => GitHubUrl is not null;
-    public bool IsExternalLinked => IsGitHubLinked;
 
     public TodoItem() => Title = string.Empty;
 
