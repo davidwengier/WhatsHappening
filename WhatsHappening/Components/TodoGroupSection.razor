@@ -23,11 +23,7 @@
         }
         @if (ShowDragHandles)
         {
-            <div @ondragover="@(() => { })" @ondragover:preventDefault
-                 @ondrop="HandleDropOnGroup" @ondrop:preventDefault
-                 @ondragenter="@(() => _dropZoneCounter++)" @ondragleave="@(() => _dropZoneCounter--)"
-                 style="min-height:12px;@(_dropZoneCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "")">
-            </div>
+            <DropZone OnDrop="HandleDropOnGroup" />
         }
     </FluentCard>
     </div>
@@ -57,16 +53,14 @@ else
                 <ChildContent>
                     @if (Items.Count == 0)
                     {
-                        <div @ondragover="@(() => { })" @ondragover:preventDefault="ShowDragHandles"
-                             @ondrop="HandleDropOnGroup" @ondrop:preventDefault @ondrop:stopPropagation
-                             @ondragenter="@(() => _dropZoneCounter++)" @ondragleave="@(() => _dropZoneCounter--)"
-                             style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;min-height:24px;@(_dropZoneCounter > 0 && !IsGroupDragging ? "border-top:2px solid var(--accent-fill-rest);" : "")">
+                        <DropZone OnDrop="HandleDropOnGroup" SuppressIndicator="IsGroupDragging" StopPropagation
+                                  Style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;min-height:24px;">
                             No items in this group
                             @if (OnDeleteGroup.HasDelegate)
                             {
                                 <span> · </span><a @onclick="DeleteGroup" @onclick:preventDefault style="cursor:pointer;color:var(--accent-fill-rest);text-decoration:none;">Delete group</a>
                             }
-                        </div>
+                        </DropZone>
                     }
                     else
                     {
@@ -86,11 +80,7 @@ else
                         }
                         @if (ShowDragHandles)
                         {
-                            <div @ondragover="@(() => { })" @ondragover:preventDefault
-                                 @ondrop="HandleDropOnGroup" @ondrop:preventDefault @ondrop:stopPropagation
-                                 @ondragenter="@(() => _dropZoneCounter++)" @ondragleave="@(() => _dropZoneCounter--)"
-                                 style="min-height:12px;@(_dropZoneCounter > 0 && !IsGroupDragging ? "border-top:2px solid var(--accent-fill-rest);" : "")">
-                            </div>
+                        <DropZone OnDrop="HandleDropOnGroup" SuppressIndicator="IsGroupDragging" StopPropagation />
                         }
                     }
                 </ChildContent>
@@ -124,7 +114,6 @@ else
     [Parameter] public EventCallback OnMoveGroupDown { get; set; }
 
     private bool _expanded;
-    private int _dropZoneCounter;
 
     protected override void OnInitialized() => _expanded = StartExpanded;
 
@@ -141,7 +130,6 @@ else
 
     private async Task HandleDropOnGroup()
     {
-        _dropZoneCounter = 0;
         await OnDropOnGroup.InvokeAsync(GroupId);
     }
 }
