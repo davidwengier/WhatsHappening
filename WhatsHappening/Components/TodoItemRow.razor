@@ -96,7 +96,8 @@
             {
                 @foreach (var link in Item.Links)
                 {
-                    <span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
+                    <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
+                        @if (IsAzDoLink(link)) { <span style="line-height:0;flex-shrink:0;">@AzDoIcon</span> }
                         <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@LinkDisplay(link)</a>
                     </span>
                 }
@@ -108,7 +109,8 @@
         <div style="display:flex;align-items:center;gap:4px;margin-left:48px;font-size:0.75rem;overflow:hidden;white-space:nowrap;">
             @foreach (var link in Item.Links!)
             {
-                <span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
+                <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);white-space:nowrap;">
+                    @if (IsAzDoLink(link)) { <span style="line-height:0;flex-shrink:0;">@AzDoIcon</span> }
                     <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@LinkDisplay(link)</a>
                 </span>
             }
@@ -171,6 +173,7 @@
                     @foreach (var link in Item.Links)
                     {
                         <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:var(--neutral-layer-4);font-size:0.75rem;">
+                            @if (IsAzDoLink(link)) { <span style="line-height:0;flex-shrink:0;">@AzDoIcon</span> }
                             <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@LinkDisplay(link)</a>
                             <span @onclick="@(() => RemoveLink(link))" style="cursor:pointer;opacity:0.5;font-size:0.65rem;" title="Remove link">✕</span>
                         </span>
@@ -409,4 +412,13 @@
         }
         catch { return link.Url; }
     }
+
+    private static bool IsAzDoLink(TodoLink link)
+    {
+        try { return new Uri(link.Url).Host is "dev.azure.com" or "devops.azure.com" || new Uri(link.Url).Host.EndsWith(".visualstudio.com"); }
+        catch { return false; }
+    }
+
+    private static MarkupString AzDoIcon => new(
+        """<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="#0078d4"><path d="M15 3.622v8.512L11.5 15l-5.425-1.975v1.958L3.004 10.97l8.951.9V4.044L15 3.622ZM12.7 3.5 7.975.25 3.675 2.1v10.669L1 11.392V3.247L7.8 1l4.9 2.5Z"/></svg>""");
 }
