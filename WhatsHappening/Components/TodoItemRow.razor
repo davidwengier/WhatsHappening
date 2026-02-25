@@ -164,7 +164,7 @@
             @if (_addingLink)
             {
                 <div style="display:flex;align-items:center;gap:4px;">
-                    <FluentTextField @bind-Value="_newLinkUrl" Immediate="true"
+                    <FluentTextField @ref="_linkUrlField" @bind-Value="_newLinkUrl" Immediate="true"
                                      @onkeypress="HandleLinkKeyPress"
                                      Placeholder="URL" Style="flex:2;font-size:0.8rem;"
                                      Appearance="FluentInputAppearance.Filled" />
@@ -184,7 +184,7 @@
             }
             else
             {
-                <FluentButton Appearance="Appearance.Lightweight" OnClick="@(() => _addingLink = true)"
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="@(() => { _addingLink = true; _focusLinkInput = true; })"
                               IconStart="new Size16.Link()" Style="font-size:0.75rem;opacity:0.6;padding:0;">
                     Add link
                 </FluentButton>
@@ -206,6 +206,7 @@
     [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }
 
     private FluentTextField? _titleField;
+    private FluentTextField? _linkUrlField;
     private bool _expanded;
     private bool _editing;
     private bool _refreshing;
@@ -214,6 +215,7 @@
     private string _editTitle = string.Empty;
     private string? _editNotes;
     private bool _addingLink;
+    private bool _focusLinkInput;
     private string? _newLinkUrl;
     private string? _newLinkLabel;
 
@@ -233,6 +235,11 @@
         {
             _focusTitleField = false;
             _titleField.FocusAsync();
+        }
+        if (_focusLinkInput && _linkUrlField is not null)
+        {
+            _focusLinkInput = false;
+            _linkUrlField.FocusAsync();
         }
     }
 
