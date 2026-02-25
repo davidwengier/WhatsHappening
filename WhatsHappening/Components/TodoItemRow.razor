@@ -3,7 +3,7 @@
 <div class="todo-item-row" draggable="@(ShowDragHandle && !_editing ? "true" : "false")"
      @ondragstart="StartDrag"
      @ondragover="@(() => { })" @ondragover:preventDefault="ShowDragHandle"
-     @ondrop="HandleDrop" @ondrop:preventDefault
+     @ondrop="HandleDrop" @ondrop:preventDefault @ondrop:stopPropagation
      @ondragenter="DragEnter" @ondragleave="DragLeave"
      style="min-height:56px;padding:2px 4px;border-radius:4px;@DropIndicator">
     <div style="display:flex;align-items:center;width:100%;gap:8px;">
@@ -202,6 +202,7 @@
     [Parameter] public EventCallback<TodoItem> OnEditStart { get; set; }
     [Parameter] public EventCallback<TodoItem> OnEditEnd { get; set; }
     [Parameter] public bool ShowDragHandle { get; set; } = true;
+    [Parameter] public bool IsGroupDragging { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDragStart { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }
 
@@ -222,7 +223,7 @@
     private bool HasNotes => !string.IsNullOrWhiteSpace(Item.Notes);
     private bool HasLinks => Item.Links is { Count: > 0 };
 
-    private string DropIndicator => _dragCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "";
+    private string DropIndicator => _dragCounter > 0 && !IsGroupDragging ? "border-top:2px solid var(--accent-fill-rest);" : "";
 
     private void StartDrag() => OnDragStart.InvokeAsync(Item);
     private void DragEnter() => _dragCounter++;

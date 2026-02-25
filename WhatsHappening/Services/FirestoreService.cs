@@ -84,7 +84,7 @@ public sealed class FirestoreService
     public async Task ReorderGroupsAsync(IEnumerable<(string Id, int Order)> updates)
     {
         var data = updates.Select(u => new { id = u.Id, order = u.Order }).ToArray();
-        await _js.InvokeVoidAsync("firebaseInterop.reorderGroups", data);
+        await _js.InvokeVoidAsync("firebaseInterop.reorderGroups", (object)data);
     }
 
     public async Task DeleteGroupAsync(string docId)

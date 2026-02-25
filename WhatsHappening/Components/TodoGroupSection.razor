@@ -7,6 +7,7 @@
         {
             <TodoItemRow Item="@todo"
                          ShowDragHandle="ShowDragHandles"
+                         IsGroupDragging="IsGroupDragging"
                          OnDelete="OnDelete"
                          OnRefresh="OnRefresh"
                          OnSave="OnSave"
@@ -51,7 +52,7 @@ else
                     @if (Items.Count == 0)
                     {
                         <div @ondragover="@(() => { })" @ondragover:preventDefault="ShowDragHandles"
-                             @ondrop="HandleDropOnGroup" @ondrop:preventDefault
+                             @ondrop="HandleDropOnGroup" @ondrop:preventDefault @ondrop:stopPropagation
                              @ondragenter="@(() => _dropZoneCounter++)" @ondragleave="@(() => _dropZoneCounter--)"
                              style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;min-height:24px;@(_dropZoneCounter > 0 && !IsGroupDragging ? "border-top:2px solid var(--accent-fill-rest);" : "")">
                             No items in this group
@@ -67,6 +68,7 @@ else
                         {
                             <TodoItemRow Item="@todo"
                                          ShowDragHandle="ShowDragHandles"
+                                         IsGroupDragging="IsGroupDragging"
                                          OnDelete="OnDelete"
                                          OnRefresh="OnRefresh"
                                          OnSave="OnSave"
@@ -78,7 +80,7 @@ else
                         @if (ShowDragHandles)
                         {
                             <div @ondragover="@(() => { })" @ondragover:preventDefault
-                                 @ondrop="HandleDropOnGroup" @ondrop:preventDefault
+                                 @ondrop="HandleDropOnGroup" @ondrop:preventDefault @ondrop:stopPropagation
                                  @ondragenter="@(() => _dropZoneCounter++)" @ondragleave="@(() => _dropZoneCounter--)"
                                  style="min-height:12px;@(_dropZoneCounter > 0 && !IsGroupDragging ? "border-top:2px solid var(--accent-fill-rest);" : "")">
                             </div>
