@@ -45,33 +45,12 @@
                           IconStart="new Size16.Dismiss()">
             </FluentButton>
         }
-        else if (Item.IsExternalLinked)
+        else
         {
             <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
                           OnClick="@(() => ToggleExpand())"
                           IconStart="@(_expanded ? new Size16.ChevronUp() : new Size16.ChevronDown())">
             </FluentButton>
-            <FluentButton OnClick="@(() => OnDelete.InvokeAsync(Item))"
-                          Style="width:30px!important;height:30px!important;flex-shrink:0;"
-                          IconStart="new Size16.Delete()">
-            </FluentButton>
-        }
-        else
-        {
-            @if (HasNotes || HasLinks)
-            {
-                <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
-                              OnClick="@(() => ToggleExpand())"
-                              IconStart="@(_expanded ? new Size16.ChevronUp() : new Size16.ChevronDown())">
-                </FluentButton>
-            }
-            else
-            {
-                <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
-                              OnClick="StartEdit" Title="Edit"
-                              IconStart="new Size16.Edit()">
-                </FluentButton>
-            }
             <FluentButton OnClick="@(() => OnDelete.InvokeAsync(Item))"
                           Style="width:30px!important;height:30px!important;flex-shrink:0;"
                           IconStart="new Size16.Delete()">
@@ -153,7 +132,14 @@
                               OnClick="StartEdit" Title="Edit"
                               IconStart="new Size16.Edit()">
                 </FluentButton>
-                <div class="markdown-body" style="margin-right:36px;">@LinkHelper.RenderMarkdown(Item.Notes)</div>
+                @if (HasNotes)
+                {
+                    <div class="markdown-body" style="margin-right:36px;">@LinkHelper.RenderMarkdown(Item.Notes)</div>
+                }
+                else
+                {
+                    <div style="margin-right:36px;font-style:italic;opacity:0.5;cursor:pointer;" @onclick="StartEdit">Click edit to add notes...</div>
+                }
             }
             else
             {
@@ -297,7 +283,7 @@
         await OnEditEnd.InvokeAsync(Item);
     }
 
-    private bool CanExpandOrEdit => !_editing && (Item.IsExternalLinked || HasNotes || HasLinks);
+    private bool CanExpandOrEdit => !_editing;
 
     private string TitleStyle
     {
