@@ -1,0 +1,44 @@
+@using Microsoft.FluentUI.AspNetCore.Components.Icons.Regular
+
+<div style="position:relative;flex-shrink:0;">
+    <FluentButton OnClick="@(() => _open = !_open)"
+                  Title="@($"Group: {SelectedName}")"
+                  Style="width:30px!important;height:30px!important;"
+                  IconStart="new Size16.FolderOpen()">
+    </FluentButton>
+    @if (_open)
+    {
+        <div style="position:absolute;top:100%;right:0;z-index:100;min-width:180px;margin-top:4px;">
+            <FluentCard Style="padding:4px 0;box-shadow:0 4px 12px rgba(0,0,0,0.25);">
+                <FluentButton Appearance="@(SelectedGroupId == "" ? Appearance.Accent : Appearance.Stealth)"
+                              OnClick="@(() => Select(""))"
+                              Style="width:100%;justify-content:flex-start;">Ungrouped</FluentButton>
+                @foreach (var g in Groups.OrderBy(g => g.Order))
+                {
+                    var gId = g.Id!;
+                    <FluentButton Appearance="@(SelectedGroupId == gId ? Appearance.Accent : Appearance.Stealth)"
+                                  OnClick="@(() => Select(gId))"
+                                  Style="width:100%;justify-content:flex-start;">@g.Name</FluentButton>
+                }
+            </FluentCard>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<TodoGroup> Groups { get; set; } = [];
+    [Parameter] public string SelectedGroupId { get; set; } = "";
+    [Parameter] public EventCallback<string> OnSelectedGroupChanged { get; set; }
+
+    private bool _open;
+
+    private string SelectedName => SelectedGroupId == ""
+        ? "Ungrouped"
+        : Groups.FirstOrDefault(g => g.Id == SelectedGroupId)?.Name ?? "group";
+
+    private async Task Select(string groupId)
+    {
+        _open = false;
+        await OnSelectedGroupChanged.InvokeAsync(groupId);
+    }
+}
