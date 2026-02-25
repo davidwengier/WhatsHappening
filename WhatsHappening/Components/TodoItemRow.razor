@@ -96,6 +96,23 @@
                 <span style="white-space:nowrap;">PR: <a href="@GitHubPrUrl" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;">@Item.LinkedPrRepo#@Item.LinkedPrNumber</a></span>
                 <span style="font-size:0.65rem;padding:1px 6px;border-radius:10px;font-weight:600;background:@LinkedPrColor;color:white;">@Item.LinkedPrState</span>
             }
+            @if (Item.Links is { Count: > 0 })
+            {
+                <span style="opacity:0.7;">·</span>
+                @foreach (var link in Item.Links)
+                {
+                    <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;white-space:nowrap;">@LinkDisplay(link)</a>
+                }
+            }
+        </div>
+    }
+    else if (HasLinks)
+    {
+        <div style="display:flex;align-items:center;gap:6px;margin-left:48px;font-size:0.75rem;opacity:0.7;overflow:hidden;white-space:nowrap;">
+            @foreach (var link in Item.Links!)
+            {
+                <a href="@link.Url" target="_blank" style="color:var(--accent-fill-rest);text-decoration:none;white-space:nowrap;">@LinkDisplay(link)</a>
+            }
         </div>
     }
     @if (Item.IsGitHubLinked && _expanded)
