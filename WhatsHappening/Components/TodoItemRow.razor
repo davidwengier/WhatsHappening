@@ -1,7 +1,7 @@
 @using Microsoft.FluentUI.AspNetCore.Components.Icons.Regular
 
 <div class="todo-item-row" draggable="@(ShowDragHandle && !_editing ? "true" : "false")"
-     @ondragstart="StartDrag"
+     @ondragstart="StartDrag" @ondragend="EndDrag"
      @ondragover="@(() => { })" @ondragover:preventDefault="ShowDragHandle"
      @ondrop="HandleDrop" @ondrop:preventDefault @ondrop:stopPropagation
      @ondragenter="DragEnter" @ondragleave="DragLeave"
@@ -220,6 +220,7 @@
     [Parameter] public bool ShowDragHandle { get; set; } = true;
     [Parameter] public bool IsGroupDragging { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDragStart { get; set; }
+    [Parameter] public EventCallback OnDragEnd { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }
 
     private FluentTextField? _titleField;
@@ -242,6 +243,7 @@
     private string DropIndicator => _dragCounter > 0 && !IsGroupDragging ? "border-top:2px solid var(--accent-fill-rest);" : "";
 
     private void StartDrag() => OnDragStart.InvokeAsync(Item);
+    private void EndDrag() => OnDragEnd.InvokeAsync();
     private void DragEnter() => _dragCounter++;
     private void DragLeave() => _dragCounter--;
     private async Task HandleDrop() { _dragCounter = 0; await OnDropOnItem.InvokeAsync(Item); }

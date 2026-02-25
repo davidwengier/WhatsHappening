@@ -36,6 +36,7 @@ else
                         @if (ShowDragHandles)
                         {
                             <div draggable="true" @ondragstart="StartGroupDrag" @ondragstart:stopPropagation
+                                 @ondragend="EndGroupDrag"
                                  @onclick:stopPropagation @onclick:preventDefault
                                  class="hide-on-mobile"
                                  style="cursor:grab;opacity:0.3;flex-shrink:0;line-height:0;">
@@ -72,6 +73,7 @@ else
                                          OnEditStart="OnEditStart"
                                          OnEditEnd="OnEditEnd"
                                          OnDragStart="OnDragStart"
+                                         OnDragEnd="OnDragEnd"
                                          OnDropOnItem="OnDropOnItem" />
                         }
                         @if (ShowDragHandles)
@@ -103,10 +105,12 @@ else
     [Parameter] public EventCallback<TodoItem> OnEditEnd { get; set; }
     [Parameter] public EventCallback OnDeleteGroup { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDragStart { get; set; }
+    [Parameter] public EventCallback OnDragEnd { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDropOnItem { get; set; }
     [Parameter] public EventCallback<string?> OnDropOnGroup { get; set; }
     [Parameter] public EventCallback<bool> OnExpandedChanged { get; set; }
     [Parameter] public EventCallback<string?> OnGroupDragStart { get; set; }
+    [Parameter] public EventCallback OnGroupDragEnd { get; set; }
     [Parameter] public bool IsDragSource { get; set; }
 
     private bool _expanded;
@@ -134,5 +138,10 @@ else
     private async Task StartGroupDrag()
     {
         await OnGroupDragStart.InvokeAsync(GroupId);
+    }
+
+    private async Task EndGroupDrag()
+    {
+        await OnGroupDragEnd.InvokeAsync();
     }
 }

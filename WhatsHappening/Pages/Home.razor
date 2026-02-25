@@ -175,6 +175,7 @@
                                       OnEditStart="HandleEditStart"
                                       OnEditEnd="HandleEditEnd"
                                       OnDragStart="HandleDragStart"
+                                      OnDragEnd="HandleDragEnd"
                                       OnDropOnItem="HandleDropOnItem"
                                       OnDropOnGroup="HandleDropOnGroup" />
                 }
@@ -194,7 +195,7 @@
                              @ondrop="@(() => HandleDropGroupAtZone(afterGroupId))" @ondrop:preventDefault
                              @ondragenter="@(() => _hoveredGroupZone = zoneIdx)"
                              @ondragleave="@(() => { if (_hoveredGroupZone == zoneIdx) _hoveredGroupZone = -1; })"
-                             style="min-height:8px;@(_hoveredGroupZone == zoneIdx ? "border-top:2px solid var(--accent-fill-rest);" : "")">
+                             style="min-height:24px;transition:min-height 0.15s;@(_hoveredGroupZone == zoneIdx ? "min-height:32px;border-top:2px solid var(--accent-fill-rest);" : "")">
                         </div>
                     }
                     @if (idx < sortedGroups.Count)
@@ -216,9 +217,11 @@
                                           OnDeleteGroup="@(() => DeleteGroup(group))"
                                           OnExpandedChanged="@(expanded => ToggleGroupExpanded(group, expanded))"
                                           OnDragStart="HandleDragStart"
+                                          OnDragEnd="HandleDragEnd"
                                           OnDropOnItem="HandleDropOnItem"
                                           OnDropOnGroup="HandleDropOnGroup"
-                                          OnGroupDragStart="HandleGroupDragStart" />
+                                          OnGroupDragStart="HandleGroupDragStart"
+                                          OnGroupDragEnd="HandleDragEnd" />
                     }
                 }
             </div>
@@ -492,6 +495,13 @@
     }
 
     private void HandleDragStart(TodoItem item) => _draggedItem = item;
+
+    private void HandleDragEnd()
+    {
+        _draggedItem = null;
+        _draggedGroup = null;
+        _hoveredGroupZone = -1;
+    }
 
     private void HandleGroupDragStart(string? groupId)
     {
