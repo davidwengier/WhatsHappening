@@ -1,3 +1,76 @@
 ﻿li {
     list-style-type: none;
 }
+
+.floating-input {
+    width: 90%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: var(--neutral-layer-1);
+}
+
+.input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.input-row .borderless-textfield {
+    flex: 1;
+}
+
+.centered-list-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 16px;
+}
+
+.list-content {
+    width: 90%;
+    max-width: 600px;
+}
+
+.groups-grid {
+    width: 95%;
+    max-width: 1000px;
+}
+
+.borderless-textfield::part(control) {
+    background-color: var(--neutral-layer-1);
+    border: 0px;
+}
+
+.add-group-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 0.75rem;
+    padding: 4px 0;
+}
+
+@media (max-width: 600px) {
+    .floating-input {
+        width: 100%;
+        padding: 12px 8px;
+        border-radius: 0;
+    }
+    .list-content {
+        width: 100%;
+    }
+    .groups-grid {
+        width: 100%;
+    }
+    .centered-list-container {
+        padding-top: 8px;
+    }
+    .groups-grid fluent-accordion {
+        margin-bottom: 0.25rem;
+    }
+    .groups-grid fluent-card {
+        margin-bottom: 0.25rem;
+    }
+}

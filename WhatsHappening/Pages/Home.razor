@@ -5,84 +5,8 @@
 @inject FirestoreService Firestore
 @inject GitHubService GitHub
 @attribute [Authorize]
-@implements IAsyncDisposable
 
 <PageTitle>What's Happening</PageTitle>
-
-<style>
-    .floating-input {
-        width: 90%;
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 16px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        background: var(--neutral-layer-1);
-    }
-
-    .input-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .input-row .borderless-textfield {
-        flex: 1;
-    }
-
-    .centered-list-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding-top: 16px;
-    }
-
-    .list-content {
-        width: 90%;
-        max-width: 600px;
-    }
-
-    .groups-grid {
-        width: 95%;
-        max-width: 1000px;
-    }
-
-    .borderless-textfield::part(control) {
-        background-color: var(--neutral-layer-1);
-        border: 0px;
-    }
-
-    .add-group-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 0.75rem;
-        padding: 4px 0;
-    }
-
-    @@media (max-width: 600px) {
-        .floating-input {
-            width: 100%;
-            padding: 12px 8px;
-            border-radius: 0;
-        }
-        .list-content {
-            width: 100%;
-        }
-        .groups-grid {
-            width: 100%;
-        }
-        .centered-list-container {
-            padding-top: 8px;
-        }
-        .groups-grid fluent-accordion {
-            margin-bottom: 0.25rem;
-        }
-        .groups-grid fluent-card {
-            margin-bottom: 0.25rem;
-        }
-    }
-</style>
 
 @if (_refreshTotal > 0)
 {
@@ -164,54 +88,34 @@
         else
         {
             <div class="groups-grid">
-                @{
-                    var sortedGroups = _groups.OrderBy(g => g.Order).ToList();
-                }
                 @* Ungrouped active items *@
                 @if (UngroupedActive.Count > 0)
                 {
                     <TodoGroupSection Items="UngroupedActive"
-                                      IsGroupDragging="@false"
-                                      ShowMoveButtons="@(sortedGroups.Count > 1)"
+                                      OnToggleComplete="ToggleComplete"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
-                                      OnEditStart="HandleEditStart"
-                                      OnEditEnd="HandleEditEnd"
                                       OnDragStart="HandleDragStart"
-                                      OnDragEnd="HandleDragEnd"
                                       OnDropOnItem="HandleDropOnItem"
                                       OnDropOnGroup="HandleDropOnGroup" />
                 }
 
                 @* User-created groups *@
-                @for (int idx = 0; idx < sortedGroups.Count; idx++)
+                @foreach (var group in _groups.OrderBy(g => g.Order))
                 {
-                    var group = sortedGroups[idx];
-                    var groupIdx = idx;
                     var items = ActiveItemsForGroup(group.Id!);
-                    <TodoGroupSection @key="group.Id"
-                                      Heading="@($"{group.Name} ({items.Count})")"
+                    <TodoGroupSection Heading="@($"{group.Name} ({items.Count})")"
                                       GroupId="@group.Id"
                                       Items="items"
-                                      StartExpanded="group.Expanded"
-                                      IsGroupDragging="@(_draggedItem is not null)"
-                                      ShowMoveButtons="@(sortedGroups.Count > 1)"
-                                      IsFirst="@(groupIdx == 0)"
-                                      IsLast="@(groupIdx == sortedGroups.Count - 1)"
+                                      OnToggleComplete="ToggleComplete"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
                                       OnSave="SaveTodo"
-                                      OnEditStart="HandleEditStart"
-                                      OnEditEnd="HandleEditEnd"
                                       OnDeleteGroup="@(() => DeleteGroup(group))"
-                                      OnExpandedChanged="@(expanded => ToggleGroupExpanded(group, expanded))"
                                       OnDragStart="HandleDragStart"
-                                      OnDragEnd="HandleDragEnd"
                                       OnDropOnItem="HandleDropOnItem"
-                                      OnDropOnGroup="HandleDropOnGroup"
-                                      OnMoveGroupUp="@(() => MoveGroup(group, -1))"
-                                      OnMoveGroupDown="@(() => MoveGroup(group, 1))" />
+                                      OnDropOnGroup="HandleDropOnGroup" />
                 }
             </div>
         }
@@ -248,7 +152,18 @@
                 }
             </div>
 
-
+            @* Completed items (built-in group) *@
+            @if (CompletedItems.Count > 0)
+            {
+                <TodoGroupSection Heading="@($"Completed ({CompletedItems.Count})")"
+                                  Items="CompletedItems"
+                                  StartExpanded="false"
+                                  ShowDragHandles="false"
+                                  OnToggleComplete="ToggleComplete"
+                                  OnDelete="RemoveTodo"
+                                  OnRefresh="RefreshGitHub"
+                                  OnSave="SaveTodo" />
+            }
         </div>
     }
 </div>
@@ -265,8 +180,6 @@
     private bool _showGroupMenu;
     private string? _newGroupName;
     private FluentTextField? _groupTextField;
-    private DotNetObjectReference<Home>? _dotNetRef;
-    private readonly HashSet<string> _editingItemIds = new();
 
     private string InputPlaceholder => _selectedGroupId == "" ? "Enter a Todo" : $"Add to {SelectedGroupName}";
 
@@ -284,6 +197,10 @@
     private List<TodoItem> ActiveItemsForGroup(string groupId) => _todoList
         .Where(t => !t.IsComplete && t.GroupId == groupId)
         .OrderBy(t => t.Order).ToList();
+
+    private List<TodoItem> CompletedItems => _todoList
+        .Where(t => t.IsComplete)
+        .OrderByDescending(t => t.CompletedAt ?? 0).ToList();
 
     private int AllActiveCount => _todoList.Count(t => !t.IsComplete);
 
@@ -306,12 +223,7 @@
         }
 
         if (_firestoreError is null)
-        {
-            _dotNetRef = DotNetObjectReference.Create(this);
-            await Firestore.ListenForTodoChangesAsync(_dotNetRef);
-            await Firestore.ListenForGroupChangesAsync(_dotNetRef);
             _ = RefreshAllGitHubStatuses();
-        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -387,7 +299,8 @@
 
             try
             {
-                await Firestore.AddTodoAsync(todo);
+                todo.Id = await Firestore.AddTodoAsync(todo);
+                _todoList.Add(todo);
                 _newTodoItem = string.Empty;
                 _firestoreError = null;
             }
@@ -405,7 +318,8 @@
             var group = new TodoGroup(_newGroupName.Trim()) { Order = _groups.Count };
             try
             {
-                await Firestore.AddGroupAsync(group);
+                group.Id = await Firestore.AddGroupAsync(group);
+                _groups.Add(group);
                 _newGroupName = string.Empty;
                 _addingGroup = false;
                 _firestoreError = null;
@@ -422,10 +336,14 @@
         if (group.Id is null) return;
         try
         {
-            var affectedTodos = _todoList.Where(t => t.GroupId == group.Id && t.Id is not null).ToList();
-            await Firestore.DeleteGroupWithUngroupAsync(group.Id, affectedTodos.Select(t => t.Id!));
-            foreach (var todo in affectedTodos)
+            // Move items in this group to ungrouped
+            foreach (var todo in _todoList.Where(t => t.GroupId == group.Id))
+            {
                 todo.GroupId = null;
+                if (todo.Id is not null)
+                    await Firestore.UpdateTodoAsync(todo.Id, new { groupId = (string?)null });
+            }
+            await Firestore.DeleteGroupAsync(group.Id);
             _groups.Remove(group);
             _firestoreError = null;
         }
@@ -435,20 +353,9 @@
         }
     }
 
-    private async Task ToggleGroupExpanded(TodoGroup group, bool expanded)
-    {
-        group.Expanded = expanded;
-        if (group.Id is null) return;
-        try
-        {
-            await Firestore.UpdateGroupAsync(group.Id, new { expanded });
-        }
-        catch { /* fire-and-forget UI preference */ }
-    }
-
     private async Task RefreshGitHub(TodoItem todo)
     {
-        if (!todo.IsGitHubLinked || todo.GitHubOwner is null || todo.GitHubRepo is null || todo.GitHubNumber is null) return;
+        if (!todo.IsGitHubLinked || todo.GitHubOwner is null || todo.GitHubNumber is null) return;
         var details = await GitHub.FetchIssuePrDetailsAsync(
             todo.GitHubOwner, todo.GitHubRepo!, todo.GitHubNumber.Value, todo.GitHubType ?? "issue");
         if (details is not null)
@@ -482,29 +389,6 @@
     }
 
     private void HandleDragStart(TodoItem item) => _draggedItem = item;
-
-    private void HandleDragEnd()
-    {
-        _draggedItem = null;
-    }
-
-    private async Task MoveGroup(TodoGroup group, int direction)
-    {
-        var sorted = _groups.OrderBy(g => g.Order).ToList();
-        var idx = sorted.IndexOf(group);
-        var newIdx = idx + direction;
-        if (newIdx < 0 || newIdx >= sorted.Count) return;
-
-        // Swap order values
-        (sorted[idx].Order, sorted[newIdx].Order) = (sorted[newIdx].Order, sorted[idx].Order);
-
-        var updates = new List<(string Id, int Order)>();
-        if (sorted[idx].Id is not null) updates.Add((sorted[idx].Id!, sorted[idx].Order));
-        if (sorted[newIdx].Id is not null) updates.Add((sorted[newIdx].Id!, sorted[newIdx].Order));
-
-        if (updates.Count > 0)
-            await Firestore.ReorderGroupsAsync(updates);
-    }
 
     private async Task HandleDropOnItem(TodoItem target)
     {
@@ -552,17 +436,30 @@
         _draggedItem = null;
     }
 
+    private async Task ToggleComplete(TodoItem todo)
+    {
+        if (todo.Id is null) return;
+        todo.IsComplete = !todo.IsComplete;
+        todo.CompletedAt = todo.IsComplete ? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() : null;
+        try
+        {
+            await Firestore.UpdateTodoAsync(todo.Id, new { isComplete = todo.IsComplete, completedAt = todo.CompletedAt });
+            _firestoreError = null;
+        }
+        catch (Exception ex)
+        {
+            todo.IsComplete = !todo.IsComplete;
+            todo.CompletedAt = todo.IsComplete ? todo.CompletedAt : null;
+            _firestoreError = ex.Message;
+        }
+    }
+
     private async Task SaveTodo(TodoItem todo)
     {
         if (todo.Id is null) return;
         try
         {
-            await Firestore.UpdateTodoAsync(todo.Id, new
-            {
-                title = todo.Title,
-                notes = todo.Notes,
-                links = todo.Links?.Select(l => new { url = l.Url, label = l.Label }).ToArray()
-            });
+            await Firestore.UpdateTodoAsync(todo.Id, new { title = todo.Title, notes = todo.Notes });
             _firestoreError = null;
         }
         catch (Exception ex)
@@ -596,57 +493,6 @@
     private async Task HandleGroupKeyPress(KeyboardEventArgs e)
     {
         if (e.Key == "Enter") await AddGroup();
-    }
-
-    // Real-time listener callbacks
-
-    [JSInvokable]
-    public void OnTodosChanged(List<TodoItem> newTodos)
-    {
-        // Don't disrupt an active drag operation
-        if (_draggedItem is not null) return;
-
-        // Preserve locally-edited items at their current position
-        foreach (var editingId in _editingItemIds)
-        {
-            var localItem = _todoList.FirstOrDefault(t => t.Id == editingId);
-            if (localItem is not null)
-            {
-                var remoteIndex = newTodos.FindIndex(t => t.Id == editingId);
-                if (remoteIndex >= 0)
-                    newTodos[remoteIndex] = localItem;
-                else
-                    newTodos.Add(localItem);
-            }
-        }
-
-        _todoList = newTodos;
-        StateHasChanged();
-    }
-
-    [JSInvokable]
-    public void OnGroupsChanged(List<TodoGroup> newGroups)
-    {
-        _groups = newGroups;
-        StateHasChanged();
-    }
-
-    // Edit state tracking (prevents listener from overwriting in-progress edits)
-
-    private void HandleEditStart(TodoItem item)
-    {
-        if (item.Id is not null) _editingItemIds.Add(item.Id);
-    }
-
-    private void HandleEditEnd(TodoItem item)
-    {
-        if (item.Id is not null) _editingItemIds.Remove(item.Id);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        try { await Firestore.StopListeningAsync(); } catch { }
-        _dotNetRef?.Dispose();
     }
 
 }
