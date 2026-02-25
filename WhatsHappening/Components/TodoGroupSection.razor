@@ -37,11 +37,13 @@ else
                         {
                             <div style="display:flex;flex-direction:column;gap:0;flex-shrink:0;" class="hide-on-mobile"
                                  @onclick:stopPropagation @onclick:preventDefault>
-                                <button @onclick="@(() => OnMoveGroupUp.InvokeAsync())" disabled="@IsFirst"
+                                <button @onclick="@(() => OnMoveGroupUp.InvokeAsync())" @onclick:stopPropagation @onclick:preventDefault
+                                        disabled="@IsFirst"
                                         style="background:none;border:none;cursor:pointer;padding:0;line-height:0;opacity:@(IsFirst ? "0.15" : "0.4");">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M3.47 7.78a.75.75 0 0 1 0-1.06l4-4a.75.75 0 0 1 1.06 0l4 4a.75.75 0 0 1-1.06 1.06L8 4.31 4.53 7.78a.75.75 0 0 1-1.06 0Z"/></svg>
                                 </button>
-                                <button @onclick="@(() => OnMoveGroupDown.InvokeAsync())" disabled="@IsLast"
+                                <button @onclick="@(() => OnMoveGroupDown.InvokeAsync())" @onclick:stopPropagation @onclick:preventDefault
+                                        disabled="@IsLast"
                                         style="background:none;border:none;cursor:pointer;padding:0;line-height:0;opacity:@(IsLast ? "0.15" : "0.4");">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M12.53 8.22a.75.75 0 0 1 0 1.06l-4 4a.75.75 0 0 1-1.06 0l-4-4a.75.75 0 1 1 1.06-1.06L8 11.69l3.47-3.47a.75.75 0 0 1 1.06 0Z"/></svg>
                                 </button>
