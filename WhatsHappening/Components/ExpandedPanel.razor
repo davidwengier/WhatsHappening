@@ -1,0 +1,7 @@
+<div style="margin-left:28px;margin-top:4px;margin-bottom:8px;padding:8px 12px;border-left:3px solid var(--accent-fill-rest);font-size:0.85rem;opacity:0.8;position:relative;max-height:180px;overflow-y:auto;">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+}
