@@ -201,7 +201,8 @@
                     {
                         var group = sortedGroups[idx];
                         var items = ActiveItemsForGroup(group.Id!);
-                        <TodoGroupSection Heading="@($"{group.Name} ({items.Count})")"
+                        <TodoGroupSection @key="group.Id"
+                                          Heading="@($"{group.Name} ({items.Count})")"
                                           GroupId="@group.Id"
                                           Items="items"
                                           StartExpanded="group.Expanded"
