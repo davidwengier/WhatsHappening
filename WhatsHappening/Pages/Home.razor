@@ -75,7 +75,6 @@
                 @if (UngroupedActive.Count > 0)
                 {
                     <TodoGroupSection Items="UngroupedActive"
-                                      IsGroupDragging="@(_draggedItem is not null)"
                                       ShowMoveButtons="@(sortedGroups.Count > 1)"
                                       OnDelete="RemoveTodo"
                                       OnRefresh="RefreshGitHub"
@@ -99,7 +98,6 @@
                                       GroupId="@group.Id"
                                       Items="items"
                                       StartExpanded="group.Expanded"
-                                      IsGroupDragging="@(_draggedItem is not null)"
                                       ShowMoveButtons="@(sortedGroups.Count > 1)"
                                       IsFirst="@(groupIdx == 0)"
                                       IsLast="@(groupIdx == sortedGroups.Count - 1)"

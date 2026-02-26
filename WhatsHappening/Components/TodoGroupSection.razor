@@ -12,7 +12,6 @@
         {
             <TodoItemRow Item="@todo"
                          ShowDragHandle="ShowDragHandles"
-                         IsGroupDragging="IsGroupDragging"
                          OnDelete="OnDelete"
                          OnRefresh="OnRefresh"
                          OnSave="OnSave"
@@ -53,7 +52,7 @@ else
                 <ChildContent>
                     @if (Items.Count == 0)
                     {
-                        <DropZone OnDrop="HandleDropOnGroup" SuppressIndicator="IsGroupDragging" StopPropagation
+                        <DropZone OnDrop="HandleDropOnGroup" StopPropagation
                                   Style="padding:8px 0;font-size:0.85rem;opacity:0.5;font-style:italic;min-height:24px;">
                             No items in this group
                             @if (OnDeleteGroup.HasDelegate)
@@ -68,7 +67,6 @@ else
                         {
                             <TodoItemRow Item="@todo"
                                          ShowDragHandle="ShowDragHandles"
-                                         IsGroupDragging="IsGroupDragging"
                                          OnDelete="OnDelete"
                                          OnRefresh="OnRefresh"
                                          OnSave="OnSave"
@@ -80,7 +78,7 @@ else
                         }
                         @if (ShowDragHandles)
                         {
-                        <DropZone OnDrop="HandleDropOnGroup" SuppressIndicator="IsGroupDragging" StopPropagation />
+                        <DropZone OnDrop="HandleDropOnGroup" StopPropagation />
                         }
                     }
                 </ChildContent>
@@ -98,7 +96,6 @@ else
     [Parameter] public bool ShowMoveButtons { get; set; }
     [Parameter] public bool IsFirst { get; set; }
     [Parameter] public bool IsLast { get; set; }
-    [Parameter] public bool IsGroupDragging { get; set; }
     [Parameter] public EventCallback<TodoItem> OnDelete { get; set; }
     [Parameter] public EventCallback<TodoItem> OnRefresh { get; set; }
     [Parameter] public EventCallback<TodoItem> OnSave { get; set; }
