@@ -44,14 +44,6 @@
     border: 0px;
 }
 
-.add-group-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 0.75rem;
-    padding: 4px 0;
-}
-
 @media (max-width: 600px) {
     .floating-input {
         width: 100%;
