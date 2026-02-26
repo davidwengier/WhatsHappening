@@ -232,14 +232,6 @@ code {
 }
 
 @media (max-width: 600px) {
-    .header-gutters {
-        margin: 0.5rem 1rem 0.5rem 1rem !important;
-    }
-
-    [dir="rtl"] .header-gutters {
-        margin: 0.5rem 1rem 0.5rem 1rem !important;
-    }
-
     .main {
         flex-direction: column !important;
         row-gap: 0 !important;
