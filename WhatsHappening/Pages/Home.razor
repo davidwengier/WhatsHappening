@@ -259,7 +259,6 @@
             try
             {
                 todo.Id = await Firestore.AddTodoAsync(todo);
-                _todoList.Add(todo);
                 _newTodoItem = string.Empty;
                 _firestoreError = null;
             }
