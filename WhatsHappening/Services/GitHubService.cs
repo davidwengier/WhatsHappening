@@ -1,15 +1,12 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace WhatsHappening.Services;
 
-public sealed partial class GitHubService
+public sealed class GitHubService
 {
     private readonly HttpClient _http;
     private readonly FirebaseAuthService _auth;
-
-    private static readonly Regex GitHubUrlPattern = GitHubUrlRegex();
 
     public GitHubService(HttpClient http, FirebaseAuthService auth)
     {
@@ -17,23 +14,43 @@ public sealed partial class GitHubService
         _auth = auth;
     }
 
-    public static bool TryParseGitHubUrl(string input, out string owner, out string repo, out int number, out string type)
+    public static bool TryParseGitHubUrl(string input, out string url, out string owner, out string repo, out int number, out string type)
     {
-        owner = repo = type = string.Empty;
+        url = owner = repo = type = string.Empty;
         number = 0;
 
-        var match = GitHubUrlPattern.Match(input.Trim());
-        if (!match.Success) return false;
+        if (!Uri.TryCreate(input.Trim(), UriKind.Absolute, out var uri))
+            return false;
 
-        owner = match.Groups["owner"].Value;
-        repo = match.Groups["repo"].Value;
-        number = int.Parse(match.Groups["number"].Value);
-        type = match.Groups["type"].Value switch
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+            return false;
+
+        if (!uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase)
+            && !uri.Host.Equals("www.github.com", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (segments.Length < 4)
+            return false;
+
+        owner = segments[0];
+        repo = segments[1];
+        var typePath = segments[2].ToLowerInvariant();
+        if (!int.TryParse(segments[3], out number))
+            return false;
+
+        type = typePath switch
         {
             "issues" => "issue",
             "pull" => "pull",
-            _ => "issue"
+            _ => string.Empty
         };
+        if (string.IsNullOrEmpty(type))
+            return false;
+
+        url = $"https://github.com/{owner}/{repo}/{typePath}/{number}";
         return true;
     }
 
@@ -130,7 +147,4 @@ public sealed partial class GitHubService
             ? open
             : candidates[^1];
     }
-
-    [GeneratedRegex(@"https?://github\.com/(?<owner>[^/]+)/(?<repo>[^/]+)/(?<type>issues|pull)/(?<number>\d+)", RegexOptions.IgnoreCase)]
-    private static partial Regex GitHubUrlRegex();
 }

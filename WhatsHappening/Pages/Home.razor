@@ -226,9 +226,9 @@
             if (!string.IsNullOrEmpty(_selectedGroupId))
                 todo.GroupId = _selectedGroupId;
 
-            if (GitHubService.TryParseGitHubUrl(_newTodoItem, out var owner, out var repo, out var number, out var type))
+            if (GitHubService.TryParseGitHubUrl(_newTodoItem, out var gitHubUrl, out var owner, out var repo, out var number, out var type))
             {
-                todo.GitHubUrl = _newTodoItem.Trim();
+                todo.GitHubUrl = gitHubUrl;
                 todo.GitHubOwner = owner;
                 todo.GitHubRepo = repo;
                 todo.GitHubNumber = number;
