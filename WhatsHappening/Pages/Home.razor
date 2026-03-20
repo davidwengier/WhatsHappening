@@ -434,7 +434,12 @@
         if (todo.Id is null) return;
         try
         {
-            await Firestore.UpdateTodoAsync(todo.Id, new { title = todo.Title, notes = todo.Notes });
+            await Firestore.UpdateTodoAsync(todo.Id, new
+            {
+                title = todo.Title,
+                notes = todo.Notes,
+                links = todo.Links?.Select(link => new { url = link.Url, label = link.Label }).ToArray()
+            });
             _firestoreError = null;
         }
         catch (Exception ex)

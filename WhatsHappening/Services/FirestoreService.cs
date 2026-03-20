@@ -31,6 +31,8 @@ public sealed class FirestoreService
             gitHubState = item.GitHubState,
             gitHubBody = item.GitHubBody,
             gitHubLabels = item.GitHubLabels?.Select(l => new { name = l.Name, color = l.Color }).ToArray(),
+            notes = item.Notes,
+            links = item.Links?.Select(link => new { url = link.Url, label = link.Label }).ToArray(),
             linkedPrNumber = item.LinkedPrNumber,
             linkedPrRepo = item.LinkedPrRepo,
             linkedPrState = item.LinkedPrState
