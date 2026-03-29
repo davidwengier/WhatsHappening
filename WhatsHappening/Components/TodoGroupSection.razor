@@ -55,9 +55,9 @@ else
                 @if (OnColorChanged.HasDelegate)
                 {
                     <label style="@ColorPickerButtonStyle" title="Choose group color">
-                        <span style="@ColorSwatchStyle"></span>
                         <input type="color"
                                value="@PickerColor"
+                               @oninput="HandleColorPreview"
                                @onchange="HandleColorChanged"
                                style="@HiddenColorInputStyle"
                                aria-label="@($"Choose group color for {Heading}")" />
@@ -131,21 +131,22 @@ else
 
     private bool _expanded;
     private bool? _lastStartExpanded;
+    private string? _previewColor;
     private readonly string _groupBodyId = $"group-body-{Guid.NewGuid():N}";
 
     private string? NormalizedGroupColor => ColorHelper.NormalizeHexColor(GroupColor);
-    private bool HasCustomColor => NormalizedGroupColor is not null;
-    private string HeaderBackgroundColor => NormalizedGroupColor ?? "var(--neutral-fill-secondary-rest, #f3f3f3)";
-    private string HeaderForegroundColor => HasCustomColor ? ColorHelper.ContrastColor(NormalizedGroupColor) : "var(--neutral-foreground-rest, #1a1a1a)";
-    private string PickerColor => NormalizedGroupColor ?? ColorHelper.DefaultPickerColor;
-    private string GroupContainerStyle => $"flex:1;min-width:0;border:1px solid {(NormalizedGroupColor ?? "var(--neutral-stroke-rest, rgba(0,0,0,0.12))")};border-radius:8px;overflow:hidden;background:var(--neutral-layer-1, #fff);";
+    private string? EffectiveGroupColor => _previewColor ?? NormalizedGroupColor;
+    private bool HasCustomColor => EffectiveGroupColor is not null;
+    private string HeaderBackgroundColor => EffectiveGroupColor ?? "var(--neutral-fill-secondary-rest, #f3f3f3)";
+    private string HeaderForegroundColor => HasCustomColor ? ColorHelper.ContrastColor(EffectiveGroupColor) : "var(--neutral-foreground-rest, #1a1a1a)";
+    private string PickerColor => EffectiveGroupColor ?? ColorHelper.DefaultPickerColor;
+    private string GroupContainerStyle => $"flex:1;min-width:0;border:1px solid {(EffectiveGroupColor ?? "var(--neutral-stroke-rest, rgba(0,0,0,0.12))")};border-radius:8px;overflow:hidden;background:var(--neutral-layer-1, #fff);";
     private string GroupHeaderStyle => $"display:flex;align-items:center;gap:8px;background:{HeaderBackgroundColor};color:{HeaderForegroundColor};";
     private string GroupToggleButtonStyle => "display:flex;align-items:center;gap:8px;flex:1;min-width:0;border:none;background:transparent;color:inherit;padding:0.625rem 0.75rem;cursor:pointer;text-align:left;font:inherit;";
     private string HeadingTextStyle => "font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
     private string GroupBodyStyle => "padding:0.5rem;border-top:1px solid var(--neutral-stroke-rest, rgba(0,0,0,0.08));";
-    private string ColorPickerButtonStyle => $"position:relative;display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;margin-right:0.75rem;flex-shrink:0;border-radius:999px;border:1px solid {HeaderForegroundColor};background:rgba(255,255,255,0.2);cursor:pointer;overflow:hidden;";
-    private string ColorSwatchStyle => $"display:block;width:1rem;height:1rem;border-radius:999px;background:{PickerColor};box-shadow:inset 0 0 0 1px rgba(255,255,255,0.35);";
-    private const string HiddenColorInputStyle = "position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;";
+    private string ColorPickerButtonStyle => $"position:relative;display:inline-block;width:16px;height:16px;margin-right:0.75rem;flex-shrink:0;border-radius:3px;border:1px solid {HeaderForegroundColor};background:{PickerColor};cursor:pointer;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.2);";
+    private const string HiddenColorInputStyle = "position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;padding:0;";
     private MarkupString ChevronIcon => _expanded ? ChevronDownSvg() : ChevronRightSvg();
 
     protected override void OnParametersSet()
@@ -155,6 +156,8 @@ else
             _expanded = StartExpanded;
             _lastStartExpanded = StartExpanded;
         }
+
+        _previewColor = NormalizedGroupColor;
     }
 
     private async Task ToggleExpanded()
@@ -168,11 +171,28 @@ else
         await OnDeleteGroup.InvokeAsync();
     }
 
+    private void HandleColorPreview(ChangeEventArgs e)
+    {
+        if (e.Value is string color)
+        {
+            var normalizedColor = ColorHelper.NormalizeHexColor(color);
+            if (normalizedColor is not null)
+            {
+                _previewColor = normalizedColor;
+            }
+        }
+    }
+
     private async Task HandleColorChanged(ChangeEventArgs e)
     {
         if (e.Value is string color)
         {
-            await OnColorChanged.InvokeAsync(color);
+            var normalizedColor = ColorHelper.NormalizeHexColor(color);
+            if (normalizedColor is not null)
+            {
+                _previewColor = normalizedColor;
+                await OnColorChanged.InvokeAsync(normalizedColor);
+            }
         }
     }
 

@@ -3,7 +3,7 @@
 ## Language & Framework Preferences
 
 - **Always prefer .NET/C#** for all code, including utility scripts, tools, and automation. Do not use Node.js, Python, or other runtimes for tooling when .NET can do the job.
-- The main app is **Blazor WebAssembly** (.NET 9) with **FluentUI** components.
+- The main app is **Blazor WebAssembly** (.NET 10) with **FluentUI** components.
 - The solution uses `.slnx` format. Add new projects to the solution file.
 
 ## Architecture
