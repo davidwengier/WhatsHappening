@@ -6,6 +6,7 @@ public sealed class TodoGroup
     public string Name { get; set; } = string.Empty;
     public int Order { get; set; }
     public bool Expanded { get; set; } = true;
+    public string? Color { get; set; }
 
     public TodoGroup() { }
 

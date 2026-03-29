@@ -70,7 +70,7 @@ public sealed class FirestoreService
 
     public async Task<string> AddGroupAsync(TodoGroup group)
     {
-        var data = new { name = group.Name, order = group.Order, expanded = group.Expanded };
+        var data = new { name = group.Name, order = group.Order, expanded = group.Expanded, color = group.Color };
         return await _js.InvokeAsync<string>("firebaseInterop.addGroup", data);
     }
 

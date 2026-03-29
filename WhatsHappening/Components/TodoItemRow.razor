@@ -91,7 +91,7 @@
                 <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;margin-right:36px;">
                     @foreach (var label in Item.GitHubLabels)
                     {
-                        <span style="display:inline-block;font-size:0.7rem;padding:1px 8px;border-radius:10px;font-weight:600;background:#@(label.Color);color:@ContrastColor(label.Color);">@label.Name</span>
+                        <span style="display:inline-block;font-size:0.7rem;padding:1px 8px;border-radius:10px;font-weight:600;background:@(ColorHelper.NormalizeHexColor(label.Color) ?? ColorHelper.DefaultPickerColor);color:@ColorHelper.ContrastColor(label.Color);">@label.Name</span>
                     }
                 </div>
             }
@@ -287,17 +287,6 @@
         $"""<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="{color}"><path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"/></svg>""");
 
     private void ToggleExpand() => _expanded = !_expanded;
-
-    // Pick black or white text based on label background luminance
-    private static string ContrastColor(string hexColor)
-    {
-        if (hexColor.Length < 6) return "#fff";
-        var r = Convert.ToInt32(hexColor[..2], 16);
-        var g = Convert.ToInt32(hexColor[2..4], 16);
-        var b = Convert.ToInt32(hexColor[4..6], 16);
-        var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.5 ? "#000" : "#fff";
-    }
 
     private async Task Refresh()
     {

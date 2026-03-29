@@ -96,6 +96,7 @@
                     <TodoGroupSection @key="group.Id"
                                       Heading="@($"{group.Name} ({items.Count})")"
                                       GroupId="@group.Id"
+                                      GroupColor="@group.Color"
                                       Items="items"
                                       StartExpanded="group.Expanded"
                                       ShowMoveButtons="@(sortedGroups.Count > 1)"
@@ -108,6 +109,7 @@
                                       OnEditEnd="HandleEditEnd"
                                       OnDeleteGroup="@(() => DeleteGroup(group))"
                                       OnExpandedChanged="@(expanded => ToggleGroupExpanded(group, expanded))"
+                                      OnColorChanged="@(color => SetGroupColor(group, color))"
                                       OnDragStart="HandleDragStart"
                                       OnDragEnd="HandleDragEnd"
                                       OnDropOnItem="HandleDropOnItem"
@@ -274,8 +276,7 @@
         var group = new TodoGroup(name) { Order = _groups.Count };
         try
         {
-            group.Id = await Firestore.AddGroupAsync(group);
-            _groups.Add(group);
+            await Firestore.AddGroupAsync(group);
             _firestoreError = null;
         }
         catch (Exception ex)
@@ -297,7 +298,8 @@
                     await Firestore.UpdateTodoAsync(todo.Id, new { groupId = (string?)null });
             }
             await Firestore.DeleteGroupAsync(group.Id);
-            _groups.Remove(group);
+            if (_selectedGroupId == group.Id)
+                _selectedGroupId = "";
             _firestoreError = null;
         }
         catch (Exception ex)
@@ -374,13 +376,39 @@
 
     private async Task ToggleGroupExpanded(TodoGroup group, bool expanded)
     {
+        var previousExpanded = group.Expanded;
         group.Expanded = expanded;
         if (group.Id is null) return;
         try
         {
             await Firestore.UpdateGroupAsync(group.Id, new { expanded });
+            _firestoreError = null;
         }
-        catch { }
+        catch (Exception ex)
+        {
+            group.Expanded = previousExpanded;
+            _firestoreError = ex.Message;
+        }
+    }
+
+    private async Task SetGroupColor(TodoGroup group, string color)
+    {
+        var normalizedColor = ColorHelper.NormalizeHexColor(color);
+        if (normalizedColor is null || group.Id is null || string.Equals(group.Color, normalizedColor, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var previousColor = group.Color;
+        group.Color = normalizedColor;
+        try
+        {
+            await Firestore.UpdateGroupAsync(group.Id, new { color = normalizedColor });
+            _firestoreError = null;
+        }
+        catch (Exception ex)
+        {
+            group.Color = previousColor;
+            _firestoreError = ex.Message;
+        }
     }
 
     private async Task HandleDropOnItem(TodoItem target)
@@ -498,6 +526,8 @@
     public void OnGroupsChanged(List<TodoGroup> newGroups)
     {
         _groups = newGroups;
+        if (!string.IsNullOrEmpty(_selectedGroupId) && _groups.All(g => g.Id != _selectedGroupId))
+            _selectedGroupId = "";
         StateHasChanged();
     }
 
