@@ -2,6 +2,7 @@ namespace WhatsHappening;
 
 public static class ColorHelper
 {
+    public const string DefaultGroupColor = "#F3F3F3";
     public const string DefaultPickerColor = "#6B7280";
 
     public static string? NormalizeHexColor(string? color)
