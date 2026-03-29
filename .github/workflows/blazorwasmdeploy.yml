@@ -2,12 +2,30 @@ name: Build and Deploy Blazor WASM to GitHub Pages
 on:
     push:
         branches: [main]
+    workflow_dispatch:
+
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+
+concurrency:
+    group: pages
+    cancel-in-progress: true
+
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
-    deploy-to-github-pages:
+    build:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
               uses: actions/checkout@v5
+
+            - name: Configure GitHub Pages
+              id: pages
+              uses: actions/configure-pages@v5
 
             - name: Setup .NET Core SDK
               uses: actions/setup-dotnet@v5
@@ -17,8 +35,15 @@ jobs:
             - name: Publish .NET Core Project
               run: dotnet publish ${{ github.event.repository.name }}/${{ github.event.repository.name }}.csproj -c Release -o release --nologo
 
-            - name: Change base-tag in index.html from / to /repository subdirectory/
-              run: sed -i 's/<base href="\/" \/>/<base href="\/${{ github.event.repository.name }}\/" \/>/g' release/wwwroot/index.html
+            - name: Change base-tag in index.html from / to Pages subdirectory
+              run: |
+                BASE_PATH="${{ steps.pages.outputs.base_path }}"
+                if [ -z "$BASE_PATH" ]; then
+                  BASE_HREF="/"
+                else
+                  BASE_HREF="${BASE_PATH%/}/"
+                fi
+                sed -i "s|<base href=\"/\" />|<base href=\"${BASE_HREF}\" />|g" release/wwwroot/index.html
 
             - name: Copy index.html to 404.html
               run: cp release/wwwroot/index.html release/wwwroot/404.html
@@ -32,11 +57,18 @@ jobs:
                 sed -i "s/\.css\"/\.css?v=${SHORT_SHA}\"/g" release/wwwroot/index.html
                 sed -i "s/\.js?v=[^\"]*\"/\.js?v=${SHORT_SHA}\"/g" release/wwwroot/index.html
 
-            - name: Add .nojekyll file
-              run: touch release/wwwroot/.nojekyll
-
-            - name: Commit wwwroot to GitHub Pages
-              uses: JamesIves/github-pages-deploy-action@v4
+            - name: Upload Pages artifact
+              uses: actions/upload-pages-artifact@v4
               with:
-                  branch: gh-pages
-                  folder: release/wwwroot
+                  path: release/wwwroot
+
+    deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v5
