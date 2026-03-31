@@ -23,6 +23,7 @@ public sealed class FirestoreService
             isComplete = item.IsComplete,
             order = item.Order,
             groupId = item.GroupId,
+            dueDate = item.DueDate,
             gitHubUrl = item.GitHubUrl,
             gitHubOwner = item.GitHubOwner,
             gitHubRepo = item.GitHubRepo,

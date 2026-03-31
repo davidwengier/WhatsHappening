@@ -465,6 +465,7 @@
             await Firestore.UpdateTodoAsync(todo.Id, new
             {
                 title = todo.Title,
+                dueDate = todo.DueDate,
                 notes = todo.Notes,
                 links = todo.Links?.Select(link => new { url = link.Url, label = link.Label }).ToArray()
             });

@@ -213,3 +213,19 @@ window.firebaseInterop = {
         };
     },
 };
+
+window.uiInterop = {
+    showPicker(element) {
+        if (!element) {
+            return;
+        }
+
+        if (typeof element.showPicker === "function") {
+            element.showPicker();
+            return;
+        }
+
+        element.focus();
+        element.click();
+    },
+};

@@ -1,3 +1,4 @@
+@using System.Globalization
 @using Microsoft.FluentUI.AspNetCore.Components.Icons.Regular
 
 <div class="todo-item-row" draggable="@(ShowDragHandle && !_editing ? "true" : "false")"
@@ -16,21 +17,65 @@
 
         @if (_editing)
         {
-            <FluentTextField @ref="_titleField" @bind-Value="_editTitle" Immediate="true"
-                             @onkeypress="HandleEditKeyPress"
-                             Style="flex:1;min-width:0;"
-                             Appearance="FluentInputAppearance.Filled" />
-        }
-        else
-        {
-            <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" title="@Item.Title" @onclick="ToggleExpand">
-                @if (Item.IsGitHubLinked)
+            <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+                @if (CanEditTitle)
                 {
-                    @Item.Title
+                    <FluentTextField @ref="_titleField" @bind-Value="_editTitle" Immediate="true"
+                                     @onkeypress="HandleEditKeyPress"
+                                     Style="flex:1;min-width:0;"
+                                     Appearance="FluentInputAppearance.Filled" />
                 }
                 else
                 {
-                    @LinkHelper.Linkify(Item.Title)
+                    <div class="todo-title-surface" style="background:var(--neutral-fill-secondary-rest, rgba(0,0,0,0.04));color:var(--neutral-foreground-rest, #1a1a1a);">
+                        <span class="todo-title-text" title="@Item.Title">@Item.Title</span>
+                    </div>
+                }
+                <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+                    @if (EditDueDateText is not null)
+                    {
+                        <span class="todo-due-date-edit-label">@EditDueDateText</span>
+                    }
+                    <input id="@_dueDateInputId"
+                           class="todo-date-picker-input"
+                           type="date"
+                           value="@DueDateInputValue"
+                           @onchange="HandleDueDateChanged" />
+                    <button type="button"
+                            class="todo-date-picker-button"
+                            title="@DueDateButtonTitle"
+                            aria-label="@DueDateButtonTitle"
+                            onclick="@DueDatePickerButtonOnClick">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                            <path d="M4.75 1a.75.75 0 0 1 .75.75V2.5h5V1.75a.75.75 0 0 1 1.5 0V2.5h.75A2.25 2.25 0 0 1 15 4.75v7A2.25 2.25 0 0 1 12.75 14h-9.5A2.25 2.25 0 0 1 1 11.75v-7A2.25 2.25 0 0 1 3.25 2.5H4V1.75A.75.75 0 0 1 4.75 1Zm8.75 5.5H2.5v5.25c0 .414.336.75.75.75h9.5a.75.75 0 0 0 .75-.75V6.5Zm-.75-2.5h-9.5a.75.75 0 0 0-.75.75V5h11V4.75a.75.75 0 0 0-.75-.75Z" />
+                        </svg>
+                    </button>
+                    @if (_editDueDate is not null)
+                    {
+                        <FluentButton Style="width:30px!important;height:30px!important;flex-shrink:0;"
+                                      OnClick="ClearDueDate" Title="Clear due date"
+                                      IconStart="new Size16.Dismiss()">
+                        </FluentButton>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="todo-title-surface" style="@TitleSurfaceStyle" title="@Item.Title" @onclick="ToggleExpand">
+                <div class="todo-title-text">
+                    @if (Item.IsGitHubLinked)
+                    {
+                        @Item.Title
+                    }
+                    else
+                    {
+                        @LinkHelper.Linkify(Item.Title)
+                    }
+                </div>
+                @if (DueDateText is not null)
+                {
+                    <span class="todo-due-date" title="@DueDateTitle">@DueDateText</span>
                 }
             </div>
         }
@@ -80,6 +125,10 @@
     @if (Item.IsGitHubLinked && _expanded)
     {
         <ExpandedPanel>
+            <FluentButton Style="position:absolute;top:4px;right:36px;width:28px!important;height:28px!important;"
+                          OnClick="StartEdit" Title="Edit"
+                          IconStart="new Size16.Edit()">
+            </FluentButton>
             <FluentButton Style="position:absolute;top:4px;right:4px;width:28px!important;height:28px!important;"
                           Loading="_refreshing"
                           OnClick="Refresh"
@@ -189,13 +238,25 @@
     private int _dragCounter;
     private string _editTitle = string.Empty;
     private string? _editNotes;
+    private DateOnly? _editDueDate;
     private bool _addingLink;
     private bool _focusLinkInput;
     private string? _newLinkUrl;
     private string? _newLinkLabel;
+    private readonly string _dueDateInputId = $"due-date-{Guid.NewGuid():N}";
 
     private bool HasNotes => !string.IsNullOrWhiteSpace(Item.Notes);
     private bool HasLinks => Item.Links is { Count: > 0 };
+    private bool CanEditTitle => !Item.IsGitHubLinked;
+    private string? DueDateText => FormatDueDate(Item.DueDate);
+    private string? EditDueDateText => FormatDueDate(_editDueDate);
+    private string DueDateInputValue => _editDueDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? string.Empty;
+    private string DueDatePickerButtonOnClick => $"window.uiInterop.showPicker(document.getElementById('{_dueDateInputId}'))";
+    private string DueDateButtonTitle => EditDueDateText is null ? "Set due date" : $"Change due date ({EditDueDateText})";
+    private string? DueDateTitle => Item.DueDate is DateOnly dueDate
+        ? $"Due {dueDate.ToString("D", CultureInfo.CurrentCulture)}"
+        : null;
+    private string TitleSurfaceStyle => BuildTitleSurfaceStyle();
 
     private string DropIndicator => _dragCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "";
 
@@ -223,9 +284,10 @@
     {
         _editTitle = Item.Title;
         _editNotes = Item.Notes;
+        _editDueDate = Item.DueDate;
         _editing = true;
         _expanded = false;
-        _focusTitleField = true;
+        _focusTitleField = CanEditTitle;
         await OnEditStart.InvokeAsync(Item);
     }
 
@@ -237,7 +299,12 @@
 
     private async Task SaveEdit()
     {
-        Item.Title = _editTitle;
+        if (CanEditTitle)
+        {
+            Item.Title = _editTitle;
+        }
+
+        Item.DueDate = _editDueDate;
         Item.Notes = string.IsNullOrWhiteSpace(_editNotes) ? null : _editNotes;
         _editing = false;
         _expanded = HasNotes;
@@ -249,6 +316,23 @@
     {
         _editing = false;
         await OnEditEnd.InvokeAsync(Item);
+    }
+
+    private void ClearDueDate() => _editDueDate = null;
+
+    private void HandleDueDateChanged(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            _editDueDate = null;
+            return;
+        }
+
+        if (DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dueDate))
+        {
+            _editDueDate = dueDate;
+        }
     }
 
     private string StateColor => GitHubStateColor(Item.GitHubState);
@@ -319,6 +403,42 @@
     {
         Item.Links?.Remove(link);
         await OnSave.InvokeAsync(Item);
+    }
+
+    private string BuildTitleSurfaceStyle()
+    {
+        const string baseStyle = "cursor:pointer;";
+
+        if (Item.IsComplete || Item.DueDate is not DateOnly dueDate)
+        {
+            return baseStyle;
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var background = dueDate < today
+            ? "#F87171"
+            : dueDate <= today.AddDays(7)
+                ? "#FEF08A"
+                : null;
+
+        if (background is null)
+        {
+            return baseStyle;
+        }
+
+        return $"{baseStyle}background:{background};color:{ColorHelper.ContrastColor(background)};";
+    }
+
+    private static string? FormatDueDate(DateOnly? dueDate)
+    {
+        if (dueDate is not DateOnly value)
+        {
+            return null;
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var format = value.Year == today.Year ? "d MMM" : "d MMM yyyy";
+        return value.ToString(format, CultureInfo.CurrentCulture);
     }
 
     private static string LinkDisplay(TodoLink link)

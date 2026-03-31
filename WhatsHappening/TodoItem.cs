@@ -8,6 +8,7 @@ public sealed class TodoItem
     public int Order { get; set; }
     public string? GroupId { get; set; }
     public long? CompletedAt { get; set; }
+    public DateOnly? DueDate { get; set; }
 
     // GitHub issue/PR link
     public string? GitHubUrl { get; set; }
