@@ -44,6 +44,12 @@ public sealed class FirestoreService
     public async Task UpdateTodoAsync(string docId, object data)
         => await _js.InvokeVoidAsync("firebaseInterop.updateTodo", docId, data);
 
+    public async Task ReorderTodosAsync(IEnumerable<(string Id, int Order, string? GroupId)> updates)
+    {
+        var data = updates.Select(u => new { id = u.Id, order = u.Order, groupId = u.GroupId }).ToArray();
+        await _js.InvokeVoidAsync("firebaseInterop.reorderTodos", (object)data);
+    }
+
     public async Task DeleteTodoAsync(string docId)
         => await _js.InvokeVoidAsync("firebaseInterop.deleteTodo", docId);
 

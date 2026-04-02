@@ -159,9 +159,12 @@
         .Where(t => !t.IsComplete && string.IsNullOrEmpty(t.GroupId))
         .OrderBy(t => t.Order).ToList();
 
-    private List<TodoItem> ActiveItemsForGroup(string groupId) => _todoList
-        .Where(t => !t.IsComplete && t.GroupId == groupId)
-        .OrderBy(t => t.Order).ToList();
+    private List<TodoItem> ActiveItemsForGroup(string groupId) => ActiveItemsForGroup(groupId, excludedItem: null);
+
+    private List<TodoItem> ActiveItemsForGroup(string? groupId, TodoItem? excludedItem) => _todoList
+        .Where(t => !t.IsComplete && (t.GroupId ?? "") == (groupId ?? "") && t != excludedItem)
+        .OrderBy(t => t.Order)
+        .ToList();
 
     private List<TodoItem> CompletedItems => _todoList
         .Where(t => t.IsComplete)
@@ -347,6 +350,10 @@
 
     private void HandleDragEnd() => _draggedItem = null;
 
+    private static string? NormalizeGroupId(string? groupId) => string.IsNullOrEmpty(groupId) ? null : groupId;
+
+    private bool IsCollapsedGroup(string? groupId) => groupId is not null && _groups.Any(g => g.Id == groupId && !g.Expanded);
+
     private void HandleEditStart(TodoItem item)
     {
         if (item.Id is not null) _editingItemIds.Add(item.Id);
@@ -413,46 +420,59 @@
 
     private async Task HandleDropOnItem(TodoItem target)
     {
-        if (_draggedItem is null || _draggedItem == target) { _draggedItem = null; return; }
-
-        var targetGroupId = target.GroupId ?? "";
-        _draggedItem.GroupId = string.IsNullOrEmpty(targetGroupId) ? null : target.GroupId;
-
-        var groupItems = _todoList
-            .Where(t => !t.IsComplete && (t.GroupId ?? "") == targetGroupId && t != _draggedItem)
-            .OrderBy(t => t.Order)
-            .ToList();
-
-        var targetIndex = groupItems.IndexOf(target);
-        groupItems.Insert(targetIndex, _draggedItem);
-
-        for (int i = 0; i < groupItems.Count; i++)
+        if (_draggedItem is null || _draggedItem == target)
         {
-            if (groupItems[i].Order != i || groupItems[i] == _draggedItem)
-            {
-                groupItems[i].Order = i;
-                if (groupItems[i].Id is not null)
-                    await Firestore.UpdateTodoAsync(groupItems[i].Id!, new { order = i, groupId = groupItems[i].GroupId });
-            }
+            _draggedItem = null;
+            return;
         }
 
-        _draggedItem = null;
+        var targetGroupId = NormalizeGroupId(target.GroupId);
+        var groupItems = ActiveItemsForGroup(targetGroupId, _draggedItem);
+
+        var targetIndex = groupItems.IndexOf(target);
+        await MoveDraggedItemToGroup(targetGroupId, groupItems, targetIndex);
     }
 
     private async Task HandleDropOnGroup(string? groupId)
     {
         if (_draggedItem is null) return;
 
-        _draggedItem.GroupId = string.IsNullOrEmpty(groupId) ? null : groupId;
+        var normalizedGroupId = NormalizeGroupId(groupId);
+        var groupItems = ActiveItemsForGroup(normalizedGroupId, _draggedItem);
+        var insertIndex = IsCollapsedGroup(normalizedGroupId) ? 0 : groupItems.Count;
+        await MoveDraggedItemToGroup(normalizedGroupId, groupItems, insertIndex);
+    }
 
-        var groupItems = _todoList
-            .Where(t => !t.IsComplete && (t.GroupId ?? "") == (groupId ?? "") && t != _draggedItem)
-            .ToList();
+    private async Task MoveDraggedItemToGroup(string? groupId, List<TodoItem> groupItems, int insertIndex)
+    {
+        if (_draggedItem is null)
+        {
+            return;
+        }
 
-        _draggedItem.Order = groupItems.Count > 0 ? groupItems.Max(t => t.Order) + 1 : 0;
+        _draggedItem.GroupId = groupId;
+        groupItems.Insert(Math.Clamp(insertIndex, 0, groupItems.Count), _draggedItem);
 
-        if (_draggedItem.Id is not null)
-            await Firestore.UpdateTodoAsync(_draggedItem.Id, new { order = _draggedItem.Order, groupId = _draggedItem.GroupId });
+        var updates = new List<(string Id, int Order, string? GroupId)>();
+        for (int i = 0; i < groupItems.Count; i++)
+        {
+            var item = groupItems[i];
+            if (item.Order == i && item != _draggedItem)
+            {
+                continue;
+            }
+
+            item.Order = i;
+            if (item.Id is not null)
+            {
+                updates.Add((item.Id, i, item.GroupId));
+            }
+        }
+
+        if (updates.Count > 0)
+        {
+            await Firestore.ReorderTodosAsync(updates);
+        }
 
         _draggedItem = null;
     }

@@ -61,9 +61,12 @@ window.firebaseInterop = {
     async reorderTodos(updates) {
         const batch = db.batch();
         for (const u of updates) {
-            batch.update(db.collection("todos").doc(u.id), {
-                order: u.order,
-            });
+            const data = { order: u.order };
+            if ("groupId" in u) {
+                data.groupId = u.groupId;
+            }
+
+            batch.update(db.collection("todos").doc(u.id), data);
         }
         await batch.commit();
     },
