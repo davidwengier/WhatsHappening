@@ -1,0 +1,25 @@
+<!-- Based on the MIT-licensed Tabler Icons checklist symbol: https://tabler.io/icons/icon/checklist -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="What's Happening icon">
+  <defs>
+    <linearGradient id="bg" x1="8" y1="0" x2="56" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0f766e" />
+      <stop offset="55%" stop-color="#0f6fd2" />
+      <stop offset="100%" stop-color="#2563eb" />
+    </linearGradient>
+    <linearGradient id="sheen" x1="16" y1="8" x2="54" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity=".18" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" fill="url(#bg)" />
+  <rect width="64" height="32" fill="url(#sheen)" />
+  <g transform="translate(7 5) scale(2.2)" fill="none" stroke="#f8fafc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9.615 20h-2.615a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8" />
+    <path d="M9 8h4" />
+    <path d="M9 12h2" />
+  </g>
+  <circle cx="45" cy="47" r="9" fill="#fde047" />
+  <g transform="translate(7 5) scale(2.2)" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 19l2 2l4 -4" />
+  </g>
+</svg>
