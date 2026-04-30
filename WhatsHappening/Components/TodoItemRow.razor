@@ -257,6 +257,11 @@
         ? $"Due {dueDate.ToString("D", CultureInfo.CurrentCulture)}"
         : null;
     private string TitleSurfaceStyle => BuildTitleSurfaceStyle();
+    private const int DueDateHighlightWindowDays = 14;
+    private const int DueDateWarningDays = 7;
+    private const string DueDateStartColor = "#FEF9C3";
+    private const string DueDateWarningColor = "#FDE047";
+    private const string DueDateUrgentColor = "#F87171";
 
     private string DropIndicator => _dragCounter > 0 ? "border-top:2px solid var(--accent-fill-rest);" : "";
 
@@ -414,19 +419,36 @@
             return baseStyle;
         }
 
-        var today = DateOnly.FromDateTime(DateTime.Today);
-        var background = dueDate < today
-            ? "#F87171"
-            : dueDate <= today.AddDays(7)
-                ? "#FEF08A"
-                : null;
-
+        var background = GetDueDateBackground(dueDate, DateOnly.FromDateTime(DateTime.Today));
         if (background is null)
         {
             return baseStyle;
         }
 
         return $"{baseStyle}background:{background};color:{ColorHelper.ContrastColor(background)};";
+    }
+
+    private static string? GetDueDateBackground(DateOnly dueDate, DateOnly today)
+    {
+        var daysUntilDue = dueDate.DayNumber - today.DayNumber;
+        if (daysUntilDue <= 0)
+        {
+            return DueDateUrgentColor;
+        }
+
+        if (daysUntilDue > DueDateHighlightWindowDays)
+        {
+            return null;
+        }
+
+        if (daysUntilDue <= DueDateWarningDays)
+        {
+            var urgentBlend = (DueDateWarningDays - daysUntilDue) / (double)DueDateWarningDays;
+            return ColorHelper.InterpolateColor(DueDateWarningColor, DueDateUrgentColor, urgentBlend) ?? DueDateUrgentColor;
+        }
+
+        var warningBlend = (DueDateHighlightWindowDays - daysUntilDue) / (double)(DueDateHighlightWindowDays - DueDateWarningDays);
+        return ColorHelper.InterpolateColor(DueDateStartColor, DueDateWarningColor, warningBlend) ?? DueDateWarningColor;
     }
 
     private static string? FormatDueDate(DateOnly? dueDate)

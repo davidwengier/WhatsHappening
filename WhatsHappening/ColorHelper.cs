@@ -45,27 +45,56 @@ public static class ColorHelper
 
     public static string ContrastColor(string? color)
     {
-        var normalized = NormalizeHexColor(color);
-        if (normalized is null)
+        var rgb = ParseRgb(color);
+        if (rgb is null)
         {
             return "#FFFFFF";
         }
 
-        var hex = normalized.AsSpan(1);
-        var red = Convert.ToInt32(hex[..2].ToString(), 16);
-        var green = Convert.ToInt32(hex[2..4].ToString(), 16);
-        var blue = Convert.ToInt32(hex[4..6].ToString(), 16);
-
         var luminance =
-            (0.2126 * Linearize(red)) +
-            (0.7152 * Linearize(green)) +
-            (0.0722 * Linearize(blue));
+            (0.2126 * Linearize(rgb.Value.Red)) +
+            (0.7152 * Linearize(rgb.Value.Green)) +
+            (0.0722 * Linearize(rgb.Value.Blue));
 
         var whiteContrast = 1.05 / (luminance + 0.05);
         var blackContrast = (luminance + 0.05) / 0.05;
 
         return blackContrast >= whiteContrast ? "#000000" : "#FFFFFF";
     }
+
+    public static string? InterpolateColor(string? startColor, string? endColor, double amount)
+    {
+        var start = ParseRgb(startColor);
+        var end = ParseRgb(endColor);
+        if (start is null || end is null)
+        {
+            return null;
+        }
+
+        var clampedAmount = Math.Clamp(amount, 0d, 1d);
+        var red = InterpolateChannel(start.Value.Red, end.Value.Red, clampedAmount);
+        var green = InterpolateChannel(start.Value.Green, end.Value.Green, clampedAmount);
+        var blue = InterpolateChannel(start.Value.Blue, end.Value.Blue, clampedAmount);
+        return $"#{red:X2}{green:X2}{blue:X2}";
+    }
+
+    private static (int Red, int Green, int Blue)? ParseRgb(string? color)
+    {
+        var normalized = NormalizeHexColor(color);
+        if (normalized is null)
+        {
+            return null;
+        }
+
+        var hex = normalized.AsSpan(1);
+        return (
+            Convert.ToInt32(hex[..2].ToString(), 16),
+            Convert.ToInt32(hex[2..4].ToString(), 16),
+            Convert.ToInt32(hex[4..6].ToString(), 16));
+    }
+
+    private static int InterpolateChannel(int start, int end, double amount) =>
+        (int)Math.Round(start + ((end - start) * amount), MidpointRounding.AwayFromZero);
 
     private static double Linearize(int channel)
     {
